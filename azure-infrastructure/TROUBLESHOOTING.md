@@ -6,6 +6,14 @@
 **Problem**: `Linux Runtime 'NODE:18-lts' is not supported`
 **Solution**: Updated deployment script to use `NODE:20-lts` which is currently supported by Azure.
 
+### ✅ SQL Server Parameter Issue
+**Problem**: `unrecognized arguments: false` when creating SQL Server
+**Solution**: Removed invalid `--enable-ad-only-auth false` parameter from SQL Server creation command.
+
+### ✅ Static Web App Issue
+**Problem**: Static Web App creation fails due to non-existent GitHub repository
+**Solution**: Commented out Static Web App creation - will create manually after frontend is ready.
+
 ## Next Steps After Fixing Runtime Issue
 
 ### 1. Continue Deployment

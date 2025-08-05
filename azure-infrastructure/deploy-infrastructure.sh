@@ -66,8 +66,7 @@ az sql server create \
     --resource-group $RESOURCE_GROUP \
     --location "$LOCATION" \
     --admin-user $SQL_ADMIN_USER \
-    --admin-password "$SQL_ADMIN_PASSWORD" \
-    --enable-ad-only-auth false
+    --admin-password "$SQL_ADMIN_PASSWORD"
 
 # Configure SQL Server firewall (allow Azure services)
 echo "🔒 Configuring SQL Server firewall rules"
@@ -136,18 +135,18 @@ az functionapp create \
     --functions-version 4 \
     --assign-identity
 
-# Create Static Web App for React frontend
-echo "🎨 Creating Static Web App: $STATIC_WEB_APP_NAME"
-az staticwebapp create \
-    --name $STATIC_WEB_APP_NAME \
-    --resource-group $RESOURCE_GROUP \
-    --location "$LOCATION" \
-    --source https://github.com/your-username/survivor-sports-frontend \
-    --branch main \
-    --app-location "/" \
-    --api-location "api" \
-    --output-location "out" \
-    --sku Standard
+# Create Static Web App for React frontend (skipping for now - will create manually later)
+echo "🎨 Skipping Static Web App creation (will create after frontend is ready)"
+# az staticwebapp create \
+#     --name $STATIC_WEB_APP_NAME \
+#     --resource-group $RESOURCE_GROUP \
+#     --location "$LOCATION" \
+#     --source https://github.com/your-username/survivor-sports-frontend \
+#     --branch main \
+#     --app-location "/" \
+#     --api-location "api" \
+#     --output-location "out" \
+#     --sku Standard
 
 # Get connection strings and keys
 echo "🔑 Retrieving connection strings and keys..."
