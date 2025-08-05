@@ -94,8 +94,7 @@ az redis create \
     --location "$LOCATION" \
     --sku Premium \
     --vm-size P1 \
-    --enable-non-ssl-port false \
-    --redis-configuration '{"maxmemory-policy":"allkeys-lru"}' \
+    --redis-configuration maxmemory-policy=allkeys-lru \
     --tags project="survivor-sports"
 
 # Create Storage Account for file uploads

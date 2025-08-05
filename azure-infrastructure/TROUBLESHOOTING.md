@@ -14,6 +14,10 @@
 **Problem**: Static Web App creation fails due to non-existent GitHub repository
 **Solution**: Commented out Static Web App creation - will create manually after frontend is ready.
 
+### ✅ Redis Cache Parameter Issue
+**Problem**: `unrecognized arguments: false` when creating Redis Cache
+**Solution**: Removed `--enable-non-ssl-port false` parameter and fixed redis-configuration format.
+
 ## Next Steps After Fixing Runtime Issue
 
 ### 1. Continue Deployment
