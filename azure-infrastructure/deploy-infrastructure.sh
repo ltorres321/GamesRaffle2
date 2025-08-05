@@ -94,8 +94,8 @@ az redis create \
     --location "$LOCATION" \
     --sku Premium \
     --vm-size P1 \
-    --redis-configuration maxmemory-policy=allkeys-lru \
-    --tags project="survivor-sports"
+    --redis-configuration '{"maxmemory-policy":"allkeys-lru"}' \
+    --tags project=survivor-sports
 
 # Create Storage Account for file uploads
 echo "📁 Creating Storage Account: $STORAGE_NAME"
