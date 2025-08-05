@@ -1,0 +1,27 @@
+{
+  "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentParameters.json#",
+  "contentVersion": "1.0.0.0",
+  "parameters": {
+    "appName": {
+      "value": "survivor-sports-app"
+    },
+    "location": {
+      "value": "East US"
+    },
+    "sqlAdministratorLogin": {
+      "value": "survivoradmin"
+    },
+    "sqlAdministratorLoginPassword": {
+      "value": "CHANGE_THIS_PASSWORD_123!"
+    },
+    "jwtSecret": {
+      "value": "CHANGE_THIS_JWT_SECRET_KEY"
+    },
+    "sessionSecret": {
+      "value": "CHANGE_THIS_SESSION_SECRET_KEY"
+    },
+    "espnApiKey": {
+      "value": "YOUR_ESPN_API_KEY_HERE"
+    }
+  }
+}
