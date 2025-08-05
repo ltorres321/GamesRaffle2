@@ -10,6 +10,7 @@ const config = require('./config/config');
 const logger = require('./utils/logger');
 const database = require('./config/database');
 const redisClient = require('./config/redis');
+const scheduledJobService = require('./services/scheduledJobService');
 const errorHandler = require('./middleware/errorHandler');
 const notFound = require('./middleware/notFound');
 
@@ -37,7 +38,7 @@ app.use(helmet({
       fontSrc: ["'self'", "https://fonts.gstatic.com"],
       imgSrc: ["'self'", "data:", "https:", "blob:"],
       scriptSrc: ["'self'"],
-      connectSrc: ["'self'", "https://api.espn.com"],
+      connectSrc: ["'self'", "https://api.sportradar.com"],
     },
   },
   crossOriginEmbedderPolicy: false
@@ -195,6 +196,10 @@ async function initializeApp() {
     await redisClient.connect();
     logger.info('Redis connected successfully');
     
+    // Initialize and start scheduled jobs
+    scheduledJobService.start();
+    logger.info('Scheduled jobs initialized and started');
+    
     // Start server
     const port = config.app.port;
     const server = app.listen(port, () => {
@@ -211,6 +216,10 @@ async function initializeApp() {
         logger.info('HTTP server closed');
         
         try {
+          // Stop scheduled jobs
+          scheduledJobService.stop();
+          logger.info('Scheduled jobs stopped');
+          
           await database.close();
           logger.info('Database connection closed');
           
