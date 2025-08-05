@@ -1,19 +1,35 @@
 -- Survivor Sports Betting App - Updated Database Schema for SportRadar Integration
 -- This script creates all tables, indexes, and constraints needed for the application
--- Run this after Azure infrastructure deployment
+-- Compatible with Azure SQL Database
 
 USE [SurvivorSportsDB];
 GO
 
--- Drop existing tables if they exist (for development/testing)
+-- Drop existing foreign key constraints first
+DECLARE @sql NVARCHAR(MAX) = '';
+SELECT @sql = @sql + 'ALTER TABLE [' + SCHEMA_NAME(schema_id) + '].[' + OBJECT_NAME(parent_object_id) + '] DROP CONSTRAINT [' + name + '];' + CHAR(13)
+FROM sys.foreign_keys;
+EXEC sp_executesql @sql;
+GO
+
+-- Drop existing triggers if they exist
+IF OBJECT_ID('dbo.TR_PlayerPicks_UpdatedAt', 'TR') IS NOT NULL DROP TRIGGER dbo.TR_PlayerPicks_UpdatedAt;
+IF OBJECT_ID('dbo.TR_SurvivorGamePlayers_UpdatedAt', 'TR') IS NOT NULL DROP TRIGGER dbo.TR_SurvivorGamePlayers_UpdatedAt;
+IF OBJECT_ID('dbo.TR_Games_UpdatedAt', 'TR') IS NOT NULL DROP TRIGGER dbo.TR_Games_UpdatedAt;
+IF OBJECT_ID('dbo.TR_SurvivorGames_UpdatedAt', 'TR') IS NOT NULL DROP TRIGGER dbo.TR_SurvivorGames_UpdatedAt;
+IF OBJECT_ID('dbo.TR_Teams_UpdatedAt', 'TR') IS NOT NULL DROP TRIGGER dbo.TR_Teams_UpdatedAt;
+IF OBJECT_ID('dbo.TR_Users_UpdatedAt', 'TR') IS NOT NULL DROP TRIGGER dbo.TR_Users_UpdatedAt;
+GO
+
+-- Drop existing tables in any order (constraints are already dropped)
 IF OBJECT_ID('dbo.PlayerPicks', 'U') IS NOT NULL DROP TABLE dbo.PlayerPicks;
 IF OBJECT_ID('dbo.GameHistory', 'U') IS NOT NULL DROP TABLE dbo.GameHistory;
 IF OBJECT_ID('dbo.SurvivorGamePlayers', 'U') IS NOT NULL DROP TABLE dbo.SurvivorGamePlayers;
+IF OBJECT_ID('dbo.UserVerification', 'U') IS NOT NULL DROP TABLE dbo.UserVerification;
 IF OBJECT_ID('dbo.Games', 'U') IS NOT NULL DROP TABLE dbo.Games;
 IF OBJECT_ID('dbo.SurvivorGames', 'U') IS NOT NULL DROP TABLE dbo.SurvivorGames;
-IF OBJECT_ID('dbo.UserVerification', 'U') IS NOT NULL DROP TABLE dbo.UserVerification;
-IF OBJECT_ID('dbo.Users', 'U') IS NOT NULL DROP TABLE dbo.Users;
 IF OBJECT_ID('dbo.Teams', 'U') IS NOT NULL DROP TABLE dbo.Teams;
+IF OBJECT_ID('dbo.Users', 'U') IS NOT NULL DROP TABLE dbo.Users;
 GO
 
 -- Create Users table
@@ -74,9 +90,7 @@ CREATE TABLE dbo.SurvivorGames (
     IsActive BIT NOT NULL DEFAULT 1,
     CreatedAt DATETIME2 NOT NULL DEFAULT GETUTCDATE(),
     UpdatedAt DATETIME2 NOT NULL DEFAULT GETUTCDATE(),
-    CompletedAt DATETIME2,
-    FOREIGN KEY (CreatedByUserId) REFERENCES dbo.Users(UserId),
-    FOREIGN KEY (WinnerId) REFERENCES dbo.Users(UserId)
+    CompletedAt DATETIME2
 );
 GO
 
@@ -96,10 +110,7 @@ CREATE TABLE dbo.Games (
     CurrentSurvivorGameId UNIQUEIDENTIFIER, -- Link to active survivor game
     Venue NVARCHAR(200),
     CreatedAt DATETIME2 NOT NULL DEFAULT GETUTCDATE(),
-    UpdatedAt DATETIME2 NOT NULL DEFAULT GETUTCDATE(),
-    FOREIGN KEY (HomeTeamId) REFERENCES dbo.Teams(TeamId),
-    FOREIGN KEY (AwayTeamId) REFERENCES dbo.Teams(TeamId),
-    FOREIGN KEY (CurrentSurvivorGameId) REFERENCES dbo.SurvivorGames(GameId)
+    UpdatedAt DATETIME2 NOT NULL DEFAULT GETUTCDATE()
 );
 GO
 
@@ -113,10 +124,7 @@ CREATE TABLE dbo.SurvivorGamePlayers (
     EliminatedReason NVARCHAR(200), -- e.g., 'Incorrect pick in Week 5'
     JoinedAt DATETIME2 NOT NULL DEFAULT GETUTCDATE(),
     EliminatedAt DATETIME2,
-    UpdatedAt DATETIME2 NOT NULL DEFAULT GETUTCDATE(),
-    FOREIGN KEY (SurvivorGameId) REFERENCES dbo.SurvivorGames(GameId),
-    FOREIGN KEY (PlayerId) REFERENCES dbo.Users(UserId),
-    UNIQUE (SurvivorGameId, PlayerId)
+    UpdatedAt DATETIME2 NOT NULL DEFAULT GETUTCDATE()
 );
 GO
 
@@ -131,11 +139,7 @@ CREATE TABLE dbo.PlayerPicks (
     IsCorrect BIT, -- NULL until game result is known
     SubmittedAt DATETIME2 NOT NULL DEFAULT GETUTCDATE(),
     ProcessedAt DATETIME2, -- When the pick result was determined
-    UpdatedAt DATETIME2 NOT NULL DEFAULT GETUTCDATE(),
-    FOREIGN KEY (PlayerId) REFERENCES dbo.Users(UserId),
-    FOREIGN KEY (GameId) REFERENCES dbo.Games(GameId),
-    FOREIGN KEY (TeamId) REFERENCES dbo.Teams(TeamId),
-    UNIQUE (PlayerId, GameId, PickNumber) -- Each player can only pick each game once per pick number
+    UpdatedAt DATETIME2 NOT NULL DEFAULT GETUTCDATE()
 );
 GO
 
@@ -151,13 +155,7 @@ CREATE TABLE dbo.GameHistory (
     PickResult NVARCHAR(20) CHECK (PickResult IN ('correct', 'incorrect', 'tie', 'no_pick')),
     Survived BIT NOT NULL DEFAULT 0,
     TotalWeeksSurvived INT NOT NULL DEFAULT 0,
-    ProcessedAt DATETIME2 NOT NULL DEFAULT GETUTCDATE(),
-    FOREIGN KEY (SurvivorGameId) REFERENCES dbo.SurvivorGames(GameId),
-    FOREIGN KEY (PlayerId) REFERENCES dbo.Users(UserId), 
-    FOREIGN KEY (NFLGameId) REFERENCES dbo.Games(GameId),
-    FOREIGN KEY (PickedTeamId) REFERENCES dbo.Teams(TeamId),
-    FOREIGN KEY (OpponentTeamId) REFERENCES dbo.Teams(TeamId),
-    UNIQUE (SurvivorGameId, PlayerId, Week)
+    ProcessedAt DATETIME2 NOT NULL DEFAULT GETUTCDATE()
 );
 GO
 
@@ -172,50 +170,123 @@ CREATE TABLE dbo.UserVerification (
     ReviewedAt DATETIME2,
     ReviewedByUserId UNIQUEIDENTIFIER,
     ReviewNotes NVARCHAR(1000),
-    ExpiresAt DATETIME2, -- Document expiration date
-    FOREIGN KEY (UserId) REFERENCES dbo.Users(UserId),
-    FOREIGN KEY (ReviewedByUserId) REFERENCES dbo.Users(UserId)
+    ExpiresAt DATETIME2 -- Document expiration date
 );
 GO
 
+-- Add foreign key constraints after all tables are created
+-- SurvivorGames foreign keys
+ALTER TABLE dbo.SurvivorGames 
+ADD CONSTRAINT FK_SurvivorGames_CreatedByUserId FOREIGN KEY (CreatedByUserId) REFERENCES dbo.Users(UserId);
+
+ALTER TABLE dbo.SurvivorGames 
+ADD CONSTRAINT FK_SurvivorGames_WinnerId FOREIGN KEY (WinnerId) REFERENCES dbo.Users(UserId);
+
+-- Games foreign keys
+ALTER TABLE dbo.Games 
+ADD CONSTRAINT FK_Games_HomeTeamId FOREIGN KEY (HomeTeamId) REFERENCES dbo.Teams(TeamId);
+
+ALTER TABLE dbo.Games 
+ADD CONSTRAINT FK_Games_AwayTeamId FOREIGN KEY (AwayTeamId) REFERENCES dbo.Teams(TeamId);
+
+ALTER TABLE dbo.Games 
+ADD CONSTRAINT FK_Games_CurrentSurvivorGameId FOREIGN KEY (CurrentSurvivorGameId) REFERENCES dbo.SurvivorGames(GameId);
+
+-- SurvivorGamePlayers foreign keys
+ALTER TABLE dbo.SurvivorGamePlayers 
+ADD CONSTRAINT FK_SurvivorGamePlayers_SurvivorGameId FOREIGN KEY (SurvivorGameId) REFERENCES dbo.SurvivorGames(GameId);
+
+ALTER TABLE dbo.SurvivorGamePlayers 
+ADD CONSTRAINT FK_SurvivorGamePlayers_PlayerId FOREIGN KEY (PlayerId) REFERENCES dbo.Users(UserId);
+
+ALTER TABLE dbo.SurvivorGamePlayers 
+ADD CONSTRAINT UQ_SurvivorGamePlayers_SurvivorGameId_PlayerId UNIQUE (SurvivorGameId, PlayerId);
+
+-- PlayerPicks foreign keys
+ALTER TABLE dbo.PlayerPicks 
+ADD CONSTRAINT FK_PlayerPicks_PlayerId FOREIGN KEY (PlayerId) REFERENCES dbo.Users(UserId);
+
+ALTER TABLE dbo.PlayerPicks 
+ADD CONSTRAINT FK_PlayerPicks_GameId FOREIGN KEY (GameId) REFERENCES dbo.Games(GameId);
+
+ALTER TABLE dbo.PlayerPicks 
+ADD CONSTRAINT FK_PlayerPicks_TeamId FOREIGN KEY (TeamId) REFERENCES dbo.Teams(TeamId);
+
+ALTER TABLE dbo.PlayerPicks 
+ADD CONSTRAINT UQ_PlayerPicks_PlayerId_GameId_PickNumber UNIQUE (PlayerId, GameId, PickNumber);
+
+-- GameHistory foreign keys
+ALTER TABLE dbo.GameHistory 
+ADD CONSTRAINT FK_GameHistory_SurvivorGameId FOREIGN KEY (SurvivorGameId) REFERENCES dbo.SurvivorGames(GameId);
+
+ALTER TABLE dbo.GameHistory 
+ADD CONSTRAINT FK_GameHistory_PlayerId FOREIGN KEY (PlayerId) REFERENCES dbo.Users(UserId);
+
+ALTER TABLE dbo.GameHistory 
+ADD CONSTRAINT FK_GameHistory_NFLGameId FOREIGN KEY (NFLGameId) REFERENCES dbo.Games(GameId);
+
+ALTER TABLE dbo.GameHistory 
+ADD CONSTRAINT FK_GameHistory_PickedTeamId FOREIGN KEY (PickedTeamId) REFERENCES dbo.Teams(TeamId);
+
+ALTER TABLE dbo.GameHistory 
+ADD CONSTRAINT FK_GameHistory_OpponentTeamId FOREIGN KEY (OpponentTeamId) REFERENCES dbo.Teams(TeamId);
+
+ALTER TABLE dbo.GameHistory 
+ADD CONSTRAINT UQ_GameHistory_SurvivorGameId_PlayerId_Week UNIQUE (SurvivorGameId, PlayerId, Week);
+
+-- UserVerification foreign keys
+ALTER TABLE dbo.UserVerification 
+ADD CONSTRAINT FK_UserVerification_UserId FOREIGN KEY (UserId) REFERENCES dbo.Users(UserId);
+
+ALTER TABLE dbo.UserVerification 
+ADD CONSTRAINT FK_UserVerification_ReviewedByUserId FOREIGN KEY (ReviewedByUserId) REFERENCES dbo.Users(UserId);
+GO
+
 -- Create indexes for performance optimization
+-- Users table indexes
 CREATE NONCLUSTERED INDEX IX_Users_Email ON dbo.Users(Email);
 CREATE NONCLUSTERED INDEX IX_Users_Username ON dbo.Users(Username);
 CREATE NONCLUSTERED INDEX IX_Users_IsVerified ON dbo.Users(IsVerified);
 CREATE NONCLUSTERED INDEX IX_Users_Role ON dbo.Users(Role);
 CREATE NONCLUSTERED INDEX IX_Users_IsActive ON dbo.Users(IsActive);
 
+-- Teams table indexes
 CREATE NONCLUSTERED INDEX IX_Teams_Alias ON dbo.Teams(Alias);
 CREATE NONCLUSTERED INDEX IX_Teams_SportRadarId ON dbo.Teams(SportRadarId);
 CREATE NONCLUSTERED INDEX IX_Teams_Conference ON dbo.Teams(Conference);
 
+-- SurvivorGames table indexes
 CREATE NONCLUSTERED INDEX IX_SurvivorGames_Status ON dbo.SurvivorGames(Status);
 CREATE NONCLUSTERED INDEX IX_SurvivorGames_Season ON dbo.SurvivorGames(Season);
 CREATE NONCLUSTERED INDEX IX_SurvivorGames_CreatedByUserId ON dbo.SurvivorGames(CreatedByUserId);
 
+-- Games table indexes
 CREATE NONCLUSTERED INDEX IX_Games_Season_Week ON dbo.Games(Season, Week);
 CREATE NONCLUSTERED INDEX IX_Games_GameDate ON dbo.Games(GameDate);
 CREATE NONCLUSTERED INDEX IX_Games_Status ON dbo.Games(Status);
 CREATE NONCLUSTERED INDEX IX_Games_SportRadarId ON dbo.Games(SportRadarId);
 CREATE NONCLUSTERED INDEX IX_Games_IsComplete ON dbo.Games(IsComplete);
 
+-- SurvivorGamePlayers table indexes
 CREATE NONCLUSTERED INDEX IX_SurvivorGamePlayers_SurvivorGameId ON dbo.SurvivorGamePlayers(SurvivorGameId);
 CREATE NONCLUSTERED INDEX IX_SurvivorGamePlayers_PlayerId ON dbo.SurvivorGamePlayers(PlayerId);
 CREATE NONCLUSTERED INDEX IX_SurvivorGamePlayers_Status ON dbo.SurvivorGamePlayers(Status);
 
+-- PlayerPicks table indexes
 CREATE NONCLUSTERED INDEX IX_PlayerPicks_PlayerId_Week ON dbo.PlayerPicks(PlayerId, Week);
 CREATE NONCLUSTERED INDEX IX_PlayerPicks_GameId ON dbo.PlayerPicks(GameId);
 CREATE NONCLUSTERED INDEX IX_PlayerPicks_SubmittedAt ON dbo.PlayerPicks(SubmittedAt);
 CREATE NONCLUSTERED INDEX IX_PlayerPicks_IsCorrect ON dbo.PlayerPicks(IsCorrect);
 
+-- GameHistory table indexes
 CREATE NONCLUSTERED INDEX IX_GameHistory_SurvivorGameId_PlayerId ON dbo.GameHistory(SurvivorGameId, PlayerId);
 CREATE NONCLUSTERED INDEX IX_GameHistory_Week ON dbo.GameHistory(Week);
 CREATE NONCLUSTERED INDEX IX_GameHistory_PickResult ON dbo.GameHistory(PickResult);
 
+-- UserVerification table indexes
 CREATE NONCLUSTERED INDEX IX_UserVerification_UserId ON dbo.UserVerification(UserId);
 CREATE NONCLUSTERED INDEX IX_UserVerification_Status ON dbo.UserVerification(VerificationStatus);
 CREATE NONCLUSTERED INDEX IX_UserVerification_SubmittedAt ON dbo.UserVerification(SubmittedAt);
-
 GO
 
 -- Create triggers for UpdatedAt columns
@@ -292,16 +363,20 @@ END;
 GO
 
 PRINT 'SportRadar-compatible database schema created successfully!';
-PRINT 'Key changes from original schema:';
-PRINT '- Teams table updated with SportRadar fields (SportRadarId, Name, Alias, Market, FullName)';
-PRINT '- Games table redesigned for NFL games with SportRadar integration';
-PRINT '- SurvivorGames table separated for survivor game instances';
-PRINT '- SurvivorGamePlayers table for player participation tracking';
-PRINT '- PlayerPicks simplified for easier pick management';
-PRINT '- All tables optimized for SportRadar API integration';
+PRINT 'Azure SQL Database compatible version';
+PRINT '';
+PRINT 'Key features:';
+PRINT '- Removed sp_MSforeachtable (not available in Azure SQL Database)';
+PRINT '- Proper foreign key constraint handling';
+PRINT '- Teams table with SportRadar integration fields';
+PRINT '- Games table for NFL games from SportRadar API';
+PRINT '- SurvivorGames table for game instances';
+PRINT '- SurvivorGamePlayers table for participation tracking';
+PRINT '- PlayerPicks table for user selections';
+PRINT '- All tables with proper indexes and triggers';
 PRINT '';
 PRINT 'Next steps:';
 PRINT '1. Run seed-data-sportradar.sql to populate NFL teams';
 PRINT '2. Create admin user account';
-PRINT '3. Deploy backend application code with SportRadar integration';
+PRINT '3. Deploy backend application with SportRadar integration';
 GO

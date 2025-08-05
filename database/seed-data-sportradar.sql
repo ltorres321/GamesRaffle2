@@ -1,11 +1,69 @@
--- Survivor Sports Betting App - Seed Data for SportRadar Integration
+﻿-- Survivor Sports Betting App - Seed Data for SportRadar Integration
 -- This script populates the database with initial data including all 32 NFL teams
 -- Compatible with SportRadar API structure
 
 USE [SurvivorSportsDB];
 GO
 
+-- Clear existing data if any (in proper order)
+DELETE FROM dbo.SurvivorGames WHERE CreatedByUserId IN (SELECT UserId FROM dbo.Users WHERE Username = 'admin');
+DELETE FROM dbo.Users WHERE Username = 'admin';
+DELETE FROM dbo.Teams;
+GO
+
+-- Drop ALL unique constraints and indexes on SportRadarId column
+DECLARE @ConstraintName NVARCHAR(255);
+DECLARE @IndexName NVARCHAR(255);
+DECLARE @SQL NVARCHAR(500);
+
+-- First, drop all UNIQUE KEY constraints on the Teams table
+DECLARE constraint_cursor CURSOR FOR
+SELECT name FROM sys.key_constraints 
+WHERE parent_object_id = OBJECT_ID('dbo.Teams') 
+AND type = 'UQ';
+
+OPEN constraint_cursor;
+FETCH NEXT FROM constraint_cursor INTO @ConstraintName;
+
+WHILE @@FETCH_STATUS = 0
+BEGIN
+    SET @SQL = 'ALTER TABLE dbo.Teams DROP CONSTRAINT [' + @ConstraintName + ']';
+    EXEC sp_executesql @SQL;
+    PRINT '✓ Dropped UNIQUE constraint: ' + @ConstraintName;
+    FETCH NEXT FROM constraint_cursor INTO @ConstraintName;
+END
+
+CLOSE constraint_cursor;
+DEALLOCATE constraint_cursor;
+
+-- Next, drop all UNIQUE indexes that might be on SportRadarId
+DECLARE index_cursor CURSOR FOR
+SELECT i.name
+FROM sys.indexes i
+INNER JOIN sys.index_columns ic ON i.object_id = ic.object_id AND i.index_id = ic.index_id
+INNER JOIN sys.columns c ON ic.object_id = c.object_id AND ic.column_id = c.column_id
+WHERE i.object_id = OBJECT_ID('dbo.Teams')
+AND c.name = 'SportRadarId'
+AND i.is_unique = 1
+AND i.type > 0; -- Exclude heaps
+
+OPEN index_cursor;
+FETCH NEXT FROM index_cursor INTO @IndexName;
+
+WHILE @@FETCH_STATUS = 0
+BEGIN
+    SET @SQL = 'DROP INDEX [' + @IndexName + '] ON dbo.Teams';
+    EXEC sp_executesql @SQL;
+    PRINT '✓ Dropped UNIQUE index: ' + @IndexName;
+    FETCH NEXT FROM index_cursor INTO @IndexName;
+END
+
+CLOSE index_cursor;
+DEALLOCATE index_cursor;
+GO
+
 -- Insert all 32 NFL teams with SportRadar-compatible structure
+-- Note: SportRadarId will be populated later via API sync
 INSERT INTO dbo.Teams (Name, Alias, Market, FullName, Conference, Division, PrimaryColor, SecondaryColor) VALUES
 -- AFC East
 ('Bills', 'BUF', 'Buffalo', 'Buffalo Bills', 'AFC', 'East', '#00338D', '#C60C30'),
@@ -57,6 +115,23 @@ INSERT INTO dbo.Teams (Name, Alias, Market, FullName, Conference, Division, Prim
 
 GO
 
+-- Re-add a filtered UNIQUE constraint that allows multiple NULLs
+-- This creates a unique index that ignores NULL values
+CREATE UNIQUE NONCLUSTERED INDEX UQ_Teams_SportRadarId_Filtered 
+ON dbo.Teams (SportRadarId) 
+WHERE SportRadarId IS NOT NULL;
+
+PRINT '✓ Created filtered UNIQUE index on SportRadarId (allows multiple NULLs)';
+
+-- Verify all teams were inserted
+DECLARE @TeamCount INT = (SELECT COUNT(*) FROM dbo.Teams);
+IF @TeamCount = 32
+    PRINT '✓ All 32 NFL teams inserted successfully'
+ELSE
+    PRINT '✗ Error: Expected 32 teams, found ' + CAST(@TeamCount AS VARCHAR(10));
+
+GO
+
 -- Create a sample admin user (password: Admin123!)
 -- In production, this should be created through the registration process
 INSERT INTO dbo.Users (
@@ -83,55 +158,105 @@ INSERT INTO dbo.Users (
 
 GO
 
+-- Verify admin user was created
+IF EXISTS (SELECT 1 FROM dbo.Users WHERE Username = 'admin')
+    PRINT '✓ Admin user created successfully'
+ELSE
+    PRINT '✗ Error: Failed to create admin user';
+
+GO
+
 -- Create a sample test survivor game for the current season
 DECLARE @AdminUserId UNIQUEIDENTIFIER;
 SELECT @AdminUserId = UserId FROM dbo.Users WHERE Username = 'admin';
 
-INSERT INTO dbo.SurvivorGames (
-    GameName,
-    Description,
-    CreatedByUserId,
-    EntryFee,
-    MaxParticipants,
-    StartWeek,
-    EndWeek,
-    RequireTwoPicksFromWeek,
-    Season,
-    Status
-) VALUES (
-    'NFL Survivor 2024 - Main Pool',
-    'Official NFL Survivor pool for the 2024 season. Pick one team each week to win. If your team loses, you''re eliminated! Starting Week 12, you must pick TWO teams each week.',
-    @AdminUserId,
-    25.00,
-    100,
-    1,
-    18,
-    12,
-    2024,
-    'open'
-);
+IF @AdminUserId IS NOT NULL
+BEGIN
+    INSERT INTO dbo.SurvivorGames (
+        GameName,
+        Description,
+        CreatedByUserId,
+        EntryFee,
+        MaxParticipants,
+        StartWeek,
+        EndWeek,
+        RequireTwoPicksFromWeek,
+        Season,
+        Status
+    ) VALUES (
+        'NFL Survivor 2025 - Main Pool',
+        'Official NFL Survivor pool for the 2025 season. Pick one team each week to win. If your team loses, you''re eliminated! Starting Week 12, you must pick TWO teams each week.',
+        @AdminUserId,
+        25.00,
+        100,
+        1,
+        18,
+        12,
+        2025,
+        'open'
+    );
+    
+    PRINT '✓ Sample Survivor game created for 2025 season';
+END
+ELSE
+BEGIN
+    PRINT '✗ Error: Could not create Survivor game - admin user not found';
+END
 
 GO
 
 -- Display summary of inserted data
-SELECT 'Teams Created' as DataType, COUNT(*) as Count FROM dbo.Teams
+PRINT '';
+PRINT '=== DATABASE SEED SUMMARY ===';
+
+DECLARE @TeamCount INT = (SELECT COUNT(*) FROM dbo.Teams);
+DECLARE @UserCount INT = (SELECT COUNT(*) FROM dbo.Users);
+DECLARE @GameCount INT = (SELECT COUNT(*) FROM dbo.SurvivorGames);
+
+SELECT 'Teams' as DataType, @TeamCount as Count, CASE WHEN @TeamCount = 32 THEN '✓' ELSE '✗' END as Status
 UNION ALL
-SELECT 'Users Created' as DataType, COUNT(*) as Count FROM dbo.Users  
+SELECT 'Users' as DataType, @UserCount as Count, CASE WHEN @UserCount >= 1 THEN '✓' ELSE '✗' END as Status
 UNION ALL
-SELECT 'Survivor Games Created' as DataType, COUNT(*) as Count FROM dbo.SurvivorGames;
+SELECT 'Survivor Games' as DataType, @GameCount as Count, CASE WHEN @GameCount >= 1 THEN '✓' ELSE '✗' END as Status;
 
 GO
 
-PRINT 'SportRadar-compatible seed data inserted successfully!';
+-- Display some sample team data to verify structure
 PRINT '';
-PRINT 'Summary:';
-PRINT '- 32 NFL teams inserted with SportRadar-compatible structure';
-PRINT '- Admin user created (username: admin, password: Admin123!)';
-PRINT '- Sample Survivor game created for 2024 season';
+PRINT '=== SAMPLE TEAM DATA ===';
+SELECT TOP 5 
+    TeamId,
+    Name,
+    Alias,
+    Market,
+    FullName,
+    Conference,
+    Division,
+    SportRadarId
+FROM dbo.Teams
+ORDER BY Conference, Division, Name;
+
+GO
+
+PRINT '';
+PRINT '=== SEED DATA COMPLETED SUCCESSFULLY ===';
+PRINT '';
+PRINT 'What was created:';
+PRINT '✓ 32 NFL teams with complete information';
+PRINT '✓ SportRadar-compatible team structure';
+PRINT '✓ Admin user account (username: admin, password: Admin123!)';
+PRINT '✓ Sample Survivor game for 2025 season';
+PRINT '✓ Filtered UNIQUE constraint on SportRadarId (allows multiple NULLs)';
 PRINT '';
 PRINT 'Next steps:';
-PRINT '1. Update Teams table with actual SportRadar IDs after first API sync';
-PRINT '2. Configure backend with Azure connection strings';  
-PRINT '3. Start the application server';
-PRINT '4. Run initial data sync: POST /api/games/sync/teams';
+PRINT '1. Update SportRadarId values via API sync';
+PRINT '2. Configure backend application';
+PRINT '3. Test the admin login';
+PRINT '4. Create additional users through the application';
+PRINT '';
+PRINT 'Important Notes:';
+PRINT '- SportRadarId fields are currently NULL and will be populated during API sync';
+PRINT '- Admin password is: Admin123! (change in production)';
+PRINT '- All teams have official NFL colors and structure';
+PRINT '- UNIQUE constraint now properly allows multiple NULL values';
 GO
