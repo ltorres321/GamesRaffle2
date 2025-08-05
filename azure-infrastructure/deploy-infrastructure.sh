@@ -46,7 +46,7 @@ az webapp create \
     --name "$APP_NAME-api" \
     --resource-group $RESOURCE_GROUP \
     --plan "asp-$APP_NAME" \
-    --runtime "NODE:18-lts" \
+    --runtime "NODE:20-lts" \
     --assign-identity
 
 # Configure App Service settings
@@ -132,7 +132,7 @@ az functionapp create \
     --storage-account $STORAGE_NAME \
     --plan "asp-$APP_NAME" \
     --runtime node \
-    --runtime-version 18 \
+    --runtime-version 20 \
     --functions-version 4 \
     --assign-identity
 
