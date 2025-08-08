@@ -3,7 +3,7 @@ const bcrypt = require('bcrypt');
 const { v4: uuidv4 } = require('uuid');
 const config = require('../config/config');
 const database = require('../config/database');
-const redisClient = require('../config/redis');
+const memoryCache = require('../config/memoryCache');
 const logger = require('../utils/logger');
 const { 
   createAuthenticationError, 
@@ -98,7 +98,7 @@ class AuthService {
         expiresAt: expiresAt.toISOString()
       };
 
-      await redisClient.setSession(sessionKey, sessionData, config.redis.ttl.session);
+      await memoryCache.setSession(sessionKey, sessionData, config.redis.ttl.session);
 
       logger.info('Refresh token stored', { userId, jti });
     } catch (error) {
@@ -114,7 +114,7 @@ class AuthService {
       
       // Check if token exists in Redis
       const sessionKey = `refresh:${decoded.jti}`;
-      const sessionData = await redisClient.getSession(sessionKey);
+      const sessionData = await memoryCache.getSession(sessionKey);
       
       if (!sessionData || sessionData.refreshToken !== refreshToken) {
         throw createAuthenticationError('Invalid refresh token', 'INVALID_REFRESH_TOKEN');
@@ -169,11 +169,18 @@ class AuthService {
       // Clear from Redis
       if (jti) {
         const sessionKey = `refresh:${jti}`;
-        await redisClient.deleteSession(sessionKey);
+        await memoryCache.deleteSession(sessionKey);
       }
 
       // Clear all user sessions
-      await redisClient.invalidateCachePattern(`sess:*:${userId}`);
+      // Clear user sessions from memory cache (simplified for memory cache)
+await memoryCache.keys(`session:*`).then(keys => {
+  keys.forEach(key => {
+    if (key.includes(userId)) {
+      memoryCache.del(key);
+    }
+  });
+});
 
       logger.info('Refresh token revoked', { userId, jti });
     } catch (error) {
@@ -193,7 +200,7 @@ class AuthService {
       lastActivity: new Date().toISOString()
     };
 
-    await redisClient.setSession(`${sessionId}:${userId}`, sessionData);
+    await memoryCache.setSession(`${sessionId}:${userId}`, sessionData);
     
     logger.info('User session created', { userId, sessionId, ip: req.ip });
     return sessionId;
@@ -201,7 +208,7 @@ class AuthService {
 
   // Validate session
   async validateSession(sessionId, userId) {
-    const sessionData = await redisClient.getSession(`${sessionId}:${userId}`);
+    const sessionData = await memoryCache.getSession(`${sessionId}:${userId}`);
     
     if (!sessionData) {
       return false;
@@ -209,14 +216,14 @@ class AuthService {
 
     // Update last activity
     sessionData.lastActivity = new Date().toISOString();
-    await redisClient.setSession(`${sessionId}:${userId}`, sessionData);
+    await memoryCache.setSession(`${sessionId}:${userId}`, sessionData);
     
     return true;
   }
 
   // Destroy session
   async destroySession(sessionId, userId) {
-    await redisClient.deleteSession(`${sessionId}:${userId}`);
+    await memoryCache.deleteSession(`${sessionId}:${userId}`);
     logger.info('User session destroyed', { userId, sessionId });
   }
 }
@@ -349,7 +356,7 @@ const optionalAuth = catchAsync(async (req, res, next) => {
 // Rate limiting for authentication endpoints
 const authRateLimit = catchAsync(async (req, res, next) => {
   const identifier = `auth:${req.ip}`;
-  const attempts = await redisClient.incrementRateLimit(identifier, 15 * 60 * 1000); // 15 minutes
+  const attempts = await memoryCache.incrementRateLimit(identifier, 15 * 60 * 1000); // 15 minutes
   
   if (attempts > config.auth.rateLimit.authMax) {
     throw createAuthenticationError(

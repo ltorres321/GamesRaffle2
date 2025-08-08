@@ -9,7 +9,7 @@ require('dotenv').config();
 const config = require('./config/config');
 const logger = require('./utils/logger');
 const database = require('./config/database');
-const redisClient = require('./config/redis');
+const memoryCache = require('./config/memoryCache');
 const scheduledJobService = require('./services/scheduledJobService');
 const errorHandler = require('./middleware/errorHandler');
 const notFound = require('./middleware/notFound');
@@ -110,11 +110,11 @@ app.get('/health', async (req, res) => {
     // Check database connection
     const dbHealthy = await database.isHealthy();
     
-    // Check Redis connection
-    const redisHealthy = await redisClient.ping() === 'PONG';
+    // Check Memory cache
+    const cacheHealthy = await memoryCache.ping() === 'PONG';
     
     const health = {
-      status: dbHealthy && redisHealthy ? 'healthy' : 'unhealthy',
+      status: dbHealthy && cacheHealthy ? 'healthy' : 'unhealthy',
       timestamp: new Date().toISOString(),
       uptime: process.uptime(),
       memory: process.memoryUsage(),
@@ -122,11 +122,11 @@ app.get('/health', async (req, res) => {
       version: require('../package.json').version,
       services: {
         database: dbHealthy ? 'connected' : 'disconnected',
-        redis: redisHealthy ? 'connected' : 'disconnected'
+        cache: cacheHealthy ? 'connected' : 'disconnected'
       }
     };
     
-    res.status(dbHealthy && redisHealthy ? 200 : 503).json(health);
+    res.status(dbHealthy && cacheHealthy ? 200 : 503).json(health);
   } catch (error) {
     logger.error('Health check failed:', error);
     res.status(503).json({
@@ -192,9 +192,9 @@ async function initializeApp() {
     await database.initialize();
     logger.info('Database connected successfully');
     
-    // Initialize Redis connection
-    await redisClient.connect();
-    logger.info('Redis connected successfully');
+    // Initialize Memory cache
+    await memoryCache.connect();
+    logger.info('Memory cache initialized successfully');
     
     // Initialize and start scheduled jobs
     scheduledJobService.start();
@@ -223,8 +223,8 @@ async function initializeApp() {
           await database.close();
           logger.info('Database connection closed');
           
-          await redisClient.quit();
-          logger.info('Redis connection closed');
+          await memoryCache.quit();
+          logger.info('Memory cache closed');
           
           logger.info('Graceful shutdown completed');
           process.exit(0);

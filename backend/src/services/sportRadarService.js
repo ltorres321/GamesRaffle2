@@ -1,5 +1,5 @@
 const axios = require('axios');
-const redis = require('../config/redis');
+const memoryCache = require('../config/memoryCache');
 const logger = require('../utils/logger');
 
 class SportRadarService {
@@ -57,7 +57,7 @@ class SportRadarService {
         // Try to get from cache first
         if (cacheKey) {
             try {
-                const cached = await redis.get(cacheKey);
+                const cached = await memoryCache.get(cacheKey);
                 if (cached) {
                     logger.debug(`Cache hit for ${cacheKey}`);
                     return JSON.parse(cached);
@@ -76,7 +76,7 @@ class SportRadarService {
                 // Cache successful response
                 if (cacheKey && response.data) {
                     try {
-                        await redis.setex(cacheKey, cacheTTL, JSON.stringify(response.data));
+                        await memoryCache.setex(cacheKey, cacheTTL, JSON.stringify(response.data));
                         logger.debug(`Cached response for ${cacheKey} (TTL: ${cacheTTL}s)`);
                     } catch (error) {
                         logger.warn('Cache write error:', error.message);
@@ -336,7 +336,7 @@ class SportRadarService {
     async getApiStats() {
         try {
             const statsKey = 'sportradar:api_stats';
-            const stats = await redis.get(statsKey);
+            const stats = await memoryCache.get(statsKey);
             return stats ? JSON.parse(stats) : {
                 requestCount: 0,
                 errorCount: 0,
@@ -369,7 +369,7 @@ class SportRadarService {
                 stats.cacheMisses = (stats.cacheMisses || 0) + 1;
             }
 
-            await redis.setex(statsKey, 86400, JSON.stringify(stats)); // 24 hour TTL
+            await memoryCache.setex(statsKey, 86400, JSON.stringify(stats)); // 24 hour TTL
         } catch (error) {
             logger.warn('Failed to update API stats:', error.message);
         }
