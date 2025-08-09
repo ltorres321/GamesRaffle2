@@ -56,7 +56,7 @@ const mockTeams: Team[] = [
   { id: '32', name: 'Seahawks', alias: 'SEA', market: 'Seattle', fullName: 'Seattle Seahawks', primaryColor: '#002244', secondaryColor: '#69BE28', conference: 'NFC', division: 'West', sportRadarId: 'sr:team:4400' }
 ]
 
-// Mock Week 1 matchups for testing
+// Mock Week 1 matchups for testing - Full NFL Week 1 Schedule (16 games)
 const mockMatchups: Matchup[] = [
   {
     id: '1',
@@ -114,6 +114,138 @@ const mockMatchups: Matchup[] = [
     teamB: mockTeams.find(t => t.alias === 'BAL')!,
     teamAId: '6',
     teamBId: '5',
+    startTime: '2024-09-08T17:00:00Z',
+    status: 'scheduled',
+    isCompleted: false
+  },
+  {
+    id: '6',
+    weekId: '1',
+    week: { id: '1', number: 1, season: 2024, lockTime: '2024-09-08T17:00:00Z', isActive: true, isCompleted: false, matchups: [] },
+    teamA: mockTeams.find(t => t.alias === 'CLE')!,
+    teamB: mockTeams.find(t => t.alias === 'HOU')!,
+    teamAId: '7',
+    teamBId: '9',
+    startTime: '2024-09-08T17:00:00Z',
+    status: 'scheduled',
+    isCompleted: false
+  },
+  {
+    id: '7',
+    weekId: '1',
+    week: { id: '1', number: 1, season: 2024, lockTime: '2024-09-08T17:00:00Z', isActive: true, isCompleted: false, matchups: [] },
+    teamA: mockTeams.find(t => t.alias === 'IND')!,
+    teamB: mockTeams.find(t => t.alias === 'JAX')!,
+    teamAId: '10',
+    teamBId: '11',
+    startTime: '2024-09-08T17:00:00Z',
+    status: 'scheduled',
+    isCompleted: false
+  },
+  {
+    id: '8',
+    weekId: '1',
+    week: { id: '1', number: 1, season: 2024, lockTime: '2024-09-08T17:00:00Z', isActive: true, isCompleted: false, matchups: [] },
+    teamA: mockTeams.find(t => t.alias === 'TEN')!,
+    teamB: mockTeams.find(t => t.alias === 'DEN')!,
+    teamAId: '12',
+    teamBId: '13',
+    startTime: '2024-09-08T17:00:00Z',
+    status: 'scheduled',
+    isCompleted: false
+  },
+  {
+    id: '9',
+    weekId: '1',
+    week: { id: '1', number: 1, season: 2024, lockTime: '2024-09-08T17:00:00Z', isActive: true, isCompleted: false, matchups: [] },
+    teamA: mockTeams.find(t => t.alias === 'LV')!,
+    teamB: mockTeams.find(t => t.alias === 'NYG')!,
+    teamAId: '15',
+    teamBId: '18',
+    startTime: '2024-09-08T17:00:00Z',
+    status: 'scheduled',
+    isCompleted: false
+  },
+  {
+    id: '10',
+    weekId: '1',
+    week: { id: '1', number: 1, season: 2024, lockTime: '2024-09-08T17:00:00Z', isActive: true, isCompleted: false, matchups: [] },
+    teamA: mockTeams.find(t => t.alias === 'WAS')!,
+    teamB: mockTeams.find(t => t.alias === 'CHI')!,
+    teamAId: '20',
+    teamBId: '21',
+    startTime: '2024-09-08T17:00:00Z',
+    status: 'scheduled',
+    isCompleted: false
+  },
+  {
+    id: '11',
+    weekId: '1',
+    week: { id: '1', number: 1, season: 2024, lockTime: '2024-09-08T17:00:00Z', isActive: true, isCompleted: false, matchups: [] },
+    teamA: mockTeams.find(t => t.alias === 'DET')!,
+    teamB: mockTeams.find(t => t.alias === 'GB')!,
+    teamAId: '22',
+    teamBId: '23',
+    startTime: '2024-09-08T17:00:00Z',
+    status: 'scheduled',
+    isCompleted: false
+  },
+  {
+    id: '12',
+    weekId: '1',
+    week: { id: '1', number: 1, season: 2024, lockTime: '2024-09-08T17:00:00Z', isActive: true, isCompleted: false, matchups: [] },
+    teamA: mockTeams.find(t => t.alias === 'MIN')!,
+    teamB: mockTeams.find(t => t.alias === 'ATL')!,
+    teamAId: '24',
+    teamBId: '25',
+    startTime: '2024-09-08T17:00:00Z',
+    status: 'scheduled',
+    isCompleted: false
+  },
+  {
+    id: '13',
+    weekId: '1',
+    week: { id: '1', number: 1, season: 2024, lockTime: '2024-09-08T17:00:00Z', isActive: true, isCompleted: false, matchups: [] },
+    teamA: mockTeams.find(t => t.alias === 'CAR')!,
+    teamB: mockTeams.find(t => t.alias === 'NO')!,
+    teamAId: '26',
+    teamBId: '27',
+    startTime: '2024-09-08T17:00:00Z',
+    status: 'scheduled',
+    isCompleted: false
+  },
+  {
+    id: '14',
+    weekId: '1',
+    week: { id: '1', number: 1, season: 2024, lockTime: '2024-09-08T17:00:00Z', isActive: true, isCompleted: false, matchups: [] },
+    teamA: mockTeams.find(t => t.alias === 'TB')!,
+    teamB: mockTeams.find(t => t.alias === 'ARI')!,
+    teamAId: '28',
+    teamBId: '29',
+    startTime: '2024-09-08T17:00:00Z',
+    status: 'scheduled',
+    isCompleted: false
+  },
+  {
+    id: '15',
+    weekId: '1',
+    week: { id: '1', number: 1, season: 2024, lockTime: '2024-09-08T17:00:00Z', isActive: true, isCompleted: false, matchups: [] },
+    teamA: mockTeams.find(t => t.alias === 'LAR')!,
+    teamB: mockTeams.find(t => t.alias === 'SF')!,
+    teamAId: '30',
+    teamBId: '31',
+    startTime: '2024-09-08T17:00:00Z',
+    status: 'scheduled',
+    isCompleted: false
+  },
+  {
+    id: '16',
+    weekId: '1',
+    week: { id: '1', number: 1, season: 2024, lockTime: '2024-09-08T17:00:00Z', isActive: true, isCompleted: false, matchups: [] },
+    teamA: mockTeams.find(t => t.alias === 'SEA')!,
+    teamB: mockTeams.find(t => t.alias === 'NE')!,
+    teamAId: '32',
+    teamBId: '3',
     startTime: '2024-09-08T17:00:00Z',
     status: 'scheduled',
     isCompleted: false
