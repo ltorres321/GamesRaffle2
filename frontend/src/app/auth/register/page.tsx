@@ -154,19 +154,50 @@ export default function RegisterPage() {
   return (
     <>
       <style jsx>{`
-        .force-visible-input {
+        .force-visible-input,
+        .force-visible-input:focus,
+        .force-visible-input:hover,
+        .force-visible-input:active,
+        .force-visible-input[type="text"],
+        .force-visible-input[type="tel"] {
           color: #000000 !important;
           background-color: #ffffff !important;
           -webkit-text-fill-color: #000000 !important;
+          -webkit-appearance: none !important;
+          opacity: 1 !important;
+          text-shadow: none !important;
+          caret-color: #000000 !important;
+          border: 1px solid #d1d5db !important;
+        }
+        
+        .force-visible-input::placeholder {
+          color: #9ca3af !important;
+          opacity: 0.7 !important;
+        }
+        
+        .force-visible-input::-webkit-input-placeholder {
+          color: #9ca3af !important;
+        }
+        
+        .force-visible-input::-moz-placeholder {
+          color: #9ca3af !important;
           opacity: 1 !important;
         }
-        .force-visible-input:focus {
-          color: #000000 !important;
-          -webkit-text-fill-color: #000000 !important;
+        
+        .force-visible-input:-ms-input-placeholder {
+          color: #9ca3af !important;
         }
+        
         .force-visible-input::selection {
           background-color: #3b82f6 !important;
           color: #ffffff !important;
+        }
+        
+        /* Force override any conflicting styles */
+        input.force-visible-input {
+          font-family: inherit !important;
+          font-size: inherit !important;
+          line-height: inherit !important;
         }
       `}</style>
       <div className="min-h-screen bg-gradient-to-br from-gray-900 via-green-900 to-gray-900 flex items-center justify-center px-4 py-12">
