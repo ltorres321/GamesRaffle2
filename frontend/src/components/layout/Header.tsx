@@ -3,10 +3,11 @@
 import { useState } from 'react'
 import Link from 'next/link'
 import { MagnifyingGlassIcon, Bars3Icon, XMarkIcon, UserCircleIcon } from '@heroicons/react/24/outline'
+import { useAuth } from '@/contexts/AuthContext'
 
 export default function Header() {
   const [isMenuOpen, setIsMenuOpen] = useState(false)
-  const [isLoggedIn, setIsLoggedIn] = useState(false) // TODO: Replace with actual auth state
+  const { isAuthenticated } = useAuth()
 
   const navigation = [
     { name: 'Home', href: '/' },
@@ -51,7 +52,7 @@ export default function Header() {
             </button>
 
             {/* User Account */}
-            {isLoggedIn ? (
+            {isAuthenticated ? (
               <div className="flex items-center space-x-3">
                 <span className="text-gold-400 font-semibold text-sm">$49</span>
                 <span className="text-gray-300 text-sm">Balance</span>
