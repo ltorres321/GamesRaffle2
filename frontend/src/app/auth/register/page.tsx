@@ -152,7 +152,24 @@ export default function RegisterPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-900 via-green-900 to-gray-900 flex items-center justify-center px-4 py-12">
+    <>
+      <style jsx>{`
+        .force-visible-input {
+          color: #000000 !important;
+          background-color: #ffffff !important;
+          -webkit-text-fill-color: #000000 !important;
+          opacity: 1 !important;
+        }
+        .force-visible-input:focus {
+          color: #000000 !important;
+          -webkit-text-fill-color: #000000 !important;
+        }
+        .force-visible-input::selection {
+          background-color: #3b82f6 !important;
+          color: #ffffff !important;
+        }
+      `}</style>
+      <div className="min-h-screen bg-gradient-to-br from-gray-900 via-green-900 to-gray-900 flex items-center justify-center px-4 py-12">
       <div className="max-w-md w-full">
         <div className="bg-white rounded-2xl shadow-2xl p-8">
           <div className="text-center mb-8">
@@ -295,15 +312,9 @@ export default function RegisterPage() {
                     value={formData.phoneNumber}
                     onChange={handleInputChange}
                     placeholder="+1234567890"
-                    className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-green-600 ${
+                    className={`force-visible-input w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-green-600 ${
                       errors.phoneNumber ? 'border-red-300' : 'border-gray-300'
                     }`}
-                    style={{
-                      color: '#000000 !important',
-                      backgroundColor: '#ffffff !important',
-                      WebkitTextFillColor: '#000000',
-                      opacity: '1'
-                    }}
                   />
                   {errors.phoneNumber && <p className="text-red-600 text-xs mt-1">{errors.phoneNumber}</p>}
                   <p className="text-xs text-gray-500 mt-1">Required for SMS verification</p>
@@ -316,15 +327,9 @@ export default function RegisterPage() {
                     name="streetAddress"
                     value={formData.streetAddress}
                     onChange={handleInputChange}
-                    className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-green-600 ${
+                    className={`force-visible-input w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-green-600 ${
                       errors.streetAddress ? 'border-red-300' : 'border-gray-300'
                     }`}
-                    style={{
-                      color: '#000000 !important',
-                      backgroundColor: '#ffffff !important',
-                      WebkitTextFillColor: '#000000',
-                      opacity: '1'
-                    }}
                   />
                   {errors.streetAddress && <p className="text-red-600 text-xs mt-1">{errors.streetAddress}</p>}
                 </div>
@@ -337,15 +342,9 @@ export default function RegisterPage() {
                       name="city"
                       value={formData.city}
                       onChange={handleInputChange}
-                      className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-green-600 ${
+                      className={`force-visible-input w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-green-600 ${
                         errors.city ? 'border-red-300' : 'border-gray-300'
                       }`}
-                      style={{
-                        color: '#000000 !important',
-                        backgroundColor: '#ffffff !important',
-                        WebkitTextFillColor: '#000000',
-                        opacity: '1'
-                      }}
                     />
                     {errors.city && <p className="text-red-600 text-xs mt-1">{errors.city}</p>}
                   </div>
@@ -356,10 +355,9 @@ export default function RegisterPage() {
                       name="state"
                       value={formData.state}
                       onChange={handleInputChange}
-                      className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-green-600 !text-gray-900 !bg-white ${
+                      className={`force-visible-input w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-green-600 ${
                         errors.state ? 'border-red-300' : 'border-gray-300'
                       }`}
-                      style={{ color: '#111827', backgroundColor: '#ffffff' }}
                     >
                       <option value="">Select a state</option>
                       <option value="AL">Alabama</option>
@@ -425,15 +423,9 @@ export default function RegisterPage() {
                       name="zipCode"
                       value={formData.zipCode}
                       onChange={handleInputChange}
-                      className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-green-600 ${
+                      className={`force-visible-input w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-green-600 ${
                         errors.zipCode ? 'border-red-300' : 'border-gray-300'
                       }`}
-                      style={{
-                        color: '#000000 !important',
-                        backgroundColor: '#ffffff !important',
-                        WebkitTextFillColor: '#000000',
-                        opacity: '1'
-                      }}
                     />
                     {errors.zipCode && <p className="text-red-600 text-xs mt-1">{errors.zipCode}</p>}
                   </div>
@@ -444,8 +436,7 @@ export default function RegisterPage() {
                       name="country"
                       value={formData.country}
                       onChange={handleInputChange}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-600 !text-gray-900 !bg-white"
-                      style={{ color: '#111827', backgroundColor: '#ffffff' }}
+                      className="force-visible-input w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-600"
                     >
                       <option value="United States">United States</option>
                     </select>
@@ -540,7 +531,8 @@ export default function RegisterPage() {
             </p>
           </div>
         </div>
+        </div>
       </div>
-    </div>
+    </>
   )
 }
