@@ -28,8 +28,8 @@ jobs:
           repo_token: ${{ secrets.GITHUB_TOKEN }}
           action: "upload"
           app_location: "/frontend"
-          api_location: "swa-db-connections"  # Changed from empty string
-          output_location: ".next"            # Added Next.js output location
+          api_location: ""                    # No API needed for frontend-only
+          output_location: ".next"            # Next.js output location
         env:
           # Add your environment variables for runtime
           SQL_CONNECTION_STRING: ${{ secrets.SQL_CONNECTION_STRING }}
