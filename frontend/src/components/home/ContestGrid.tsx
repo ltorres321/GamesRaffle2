@@ -121,9 +121,9 @@ function ContestCard({ contest }: ContestCardProps) {
                 </div>
                 <div className="text-right">
                   <p className="text-gold-400 font-bold text-lg">
-                    {formatPrizeValue(mainPrize.value)}
+                    🏆
                   </p>
-                  <p className="text-xs text-gray-400">Value</p>
+                  <p className="text-xs text-gray-400">Prize</p>
                 </div>
               </div>
             </div>

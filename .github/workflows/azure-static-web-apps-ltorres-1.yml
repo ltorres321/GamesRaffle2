@@ -1,13 +1,13 @@
-name: Azure Static Web Apps CI/CD
+name: Azure Static Web Apps CI/CD - ltorres-1 branch
 
 on:
   push:
     branches:
-      - main
+      - ltorres-1
   pull_request:
     types: [opened, synchronize, reopened, closed]
     branches:
-      - main
+      - ltorres-1
 
 jobs:
   build_and_deploy_job:
@@ -18,20 +18,24 @@ jobs:
       - uses: actions/checkout@v3
         with:
           submodules: true
-
+          lfs: false
+      
       - name: Build And Deploy
         id: builddeploy
         uses: Azure/static-web-apps-deploy@v1
         with:
-          azure_static_web_apps_api_token: ${{ secrets.AZURE_STATIC_WEB_APPS_API_TOKEN_RED_HILL_054635E0F }}
+          azure_static_web_apps_api_token: ${{ secrets.AZURE_STATIC_WEB_APPS_API_TOKEN_LTORRES_1 }}
           repo_token: ${{ secrets.GITHUB_TOKEN }}
           action: "upload"
           app_location: "/frontend"
-          api_location: ""
-          output_location: ""
+          api_location: ""                    # No API needed for frontend-only
+          output_location: ".next"            # Next.js output location
         env:
-          # Frontend Configuration
-          NEXT_PUBLIC_API_URL: "/api"
+          # Add your environment variables for runtime
+          SQL_CONNECTION_STRING: ${{ secrets.SQL_CONNECTION_STRING }}
+          JWT_SECRET: ${{ secrets.JWT_SECRET }}
+          SESSION_SECRET: ${{ secrets.SESSION_SECRET }}
+          SPORTRADAR_API_KEY: ${{ secrets.SPORTRADAR_API_KEY }}
 
   close_pull_request_job:
     if: github.event_name == 'pull_request' && github.event.action == 'closed'
@@ -42,6 +46,6 @@ jobs:
         id: closepullrequest
         uses: Azure/static-web-apps-deploy@v1
         with:
-          azure_static_web_apps_api_token: ${{ secrets.AZURE_STATIC_WEB_APPS_API_TOKEN_RED_HILL_054635E0F }}
+          azure_static_web_apps_api_token: ${{ secrets.AZURE_STATIC_WEB_APPS_API_TOKEN_LTORRES_1 }}
           action: "close"
           app_location: "/frontend"

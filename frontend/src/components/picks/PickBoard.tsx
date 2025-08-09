@@ -35,6 +35,10 @@ export default function PickBoard({
     return existingPicks.some(pick => pick.teamId === teamId)
   }
 
+  const getTeamHelmetImage = (alias: string) => {
+    return `/darklogo/${alias}.gif`
+  }
+
   const getTeamLogo = (team: Team) => {
     // In a real app, this would return actual team logos
     // For now, using team abbreviation with team colors
@@ -172,10 +176,10 @@ function MatchupCard({ matchup, onTeamSelect, selectedTeams, isLocked, existingP
   }
 
   return (
-    <div className="bg-surface-light border border-dark-700 rounded-xl p-6">
+    <div className="bg-gray-100 border border-gray-300 rounded-xl p-6">
       {/* Game Time Header */}
       <div className="text-center mb-6">
-        <p className="text-gray-400 text-sm mb-1">
+        <p className="text-black text-base font-medium mb-1">
           {formatTime(matchup.startTime)}
         </p>
         <div className="flex items-center justify-center space-x-2">
@@ -222,14 +226,17 @@ interface TeamCardProps {
 }
 
 function TeamCard({ team, isSelected, isDisabled, onClick, showDisabledReason }: TeamCardProps) {
+  const getTeamHelmetImage = (alias: string) => {
+    return `/darklogo/${alias}.gif`
+  }
   const getTeamCardClass = () => {
     if (isDisabled) {
-      return 'team-card-disabled'
+      return 'bg-gray-200 border border-gray-400 rounded-lg p-4 cursor-not-allowed opacity-60'
     }
     if (isSelected) {
-      return 'team-card-selected'
+      return 'bg-green-100 border border-green-600 rounded-lg p-4 cursor-pointer'
     }
-    return 'team-card hover:border-primary-500'
+    return 'bg-white border border-gray-300 rounded-lg p-4 cursor-pointer hover:border-green-500 hover:bg-green-50 transition-colors'
   }
 
   return (
@@ -241,11 +248,11 @@ function TeamCard({ team, isSelected, isDisabled, onClick, showDisabledReason }:
         {/* Radio Button */}
         <div className={`
           w-5 h-5 rounded-full border-2 flex items-center justify-center transition-colors
-          ${isSelected 
-            ? 'border-primary-500 bg-primary-500' 
-            : isDisabled 
-              ? 'border-gray-600' 
-              : 'border-gray-400 hover:border-primary-500'
+          ${isSelected
+            ? 'border-green-600 bg-green-600'
+            : isDisabled
+              ? 'border-gray-500'
+              : 'border-gray-500 hover:border-green-600'
           }
         `}>
           {isSelected && (
@@ -253,21 +260,30 @@ function TeamCard({ team, isSelected, isDisabled, onClick, showDisabledReason }:
           )}
         </div>
 
-        {/* Team Logo/Colors */}
-        <div 
-          className="w-12 h-12 rounded-lg flex items-center justify-center text-white font-bold text-sm"
-          style={{ 
-            backgroundColor: team.primaryColor,
-            border: `2px solid ${team.secondaryColor}`
-          }}
-        >
-          {team.alias}
+        {/* Team Helmet */}
+        <div className="w-12 h-12 rounded-lg flex items-center justify-center overflow-hidden">
+          <img
+            src={getTeamHelmetImage(team.alias)}
+            alt={`${team.fullName} helmet`}
+            className="w-10 h-10 object-contain"
+            onError={(e) => {
+              // Fallback to team colors if helmet image fails to load
+              const target = e.target as HTMLImageElement;
+              target.style.display = 'none';
+              const parent = target.parentElement;
+              if (parent) {
+                parent.style.backgroundColor = team.primaryColor;
+                parent.style.border = `2px solid ${team.secondaryColor}`;
+                parent.innerHTML = `<span class="text-white font-bold text-sm">${team.alias}</span>`;
+              }
+            }}
+          />
         </div>
 
         {/* Team Info */}
         <div className="flex-1">
-          <h3 className="font-semibold text-white">{team.name}</h3>
-          <p className="text-sm text-gray-400">{team.market}</p>
+          <h3 className="font-semibold text-black">{team.name}</h3>
+          <p className="text-sm text-gray-600">{team.market}</p>
         </div>
       </div>
 
