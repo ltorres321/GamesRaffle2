@@ -295,7 +295,7 @@ export default function RegisterPage() {
                     value={formData.phoneNumber}
                     onChange={handleInputChange}
                     placeholder="+1234567890"
-                    className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-green-600 ${
+                    className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-green-600 text-gray-900 bg-white ${
                       errors.phoneNumber ? 'border-red-300' : 'border-gray-300'
                     }`}
                   />
@@ -310,7 +310,7 @@ export default function RegisterPage() {
                     name="streetAddress"
                     value={formData.streetAddress}
                     onChange={handleInputChange}
-                    className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-green-600 ${
+                    className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-green-600 text-gray-900 bg-white ${
                       errors.streetAddress ? 'border-red-300' : 'border-gray-300'
                     }`}
                   />
@@ -325,7 +325,7 @@ export default function RegisterPage() {
                       name="city"
                       value={formData.city}
                       onChange={handleInputChange}
-                      className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-green-600 ${
+                      className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-green-600 text-gray-900 bg-white ${
                         errors.city ? 'border-red-300' : 'border-gray-300'
                       }`}
                     />
@@ -339,7 +339,7 @@ export default function RegisterPage() {
                       name="state"
                       value={formData.state}
                       onChange={handleInputChange}
-                      className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-green-600 ${
+                      className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-green-600 text-gray-900 bg-white ${
                         errors.state ? 'border-red-300' : 'border-gray-300'
                       }`}
                     />
@@ -355,7 +355,7 @@ export default function RegisterPage() {
                       name="zipCode"
                       value={formData.zipCode}
                       onChange={handleInputChange}
-                      className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-green-600 ${
+                      className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-green-600 text-gray-900 bg-white ${
                         errors.zipCode ? 'border-red-300' : 'border-gray-300'
                       }`}
                     />
@@ -368,7 +368,7 @@ export default function RegisterPage() {
                       name="country"
                       value={formData.country}
                       onChange={handleInputChange}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-600"
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-600 text-gray-900 bg-white"
                     >
                       <option value="United States">United States</option>
                       <option value="Canada">Canada</option>
