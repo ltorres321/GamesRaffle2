@@ -150,90 +150,36 @@
   }
 }
 
-/* FIXED: Registration form inputs - make text always visible */
-.registration-form input[type="text"],
-.registration-form input[type="email"],
-.registration-form input[type="tel"],
-.registration-form input[type="date"],
-.registration-form input[type="password"],
-.registration-form select {
+/* Force visible text in registration form inputs */
+input[type="text"],
+input[type="email"],
+input[type="tel"],
+input[type="date"],
+input[type="password"],
+select {
   color: #000000 !important;
   background-color: #ffffff !important;
   -webkit-text-fill-color: #000000 !important;
-  -webkit-appearance: none !important;
   caret-color: #000000 !important;
   opacity: 1 !important;
-  text-shadow: none !important;
-  font-family: inherit !important;
-  font-size: inherit !important;
-  line-height: inherit !important;
 }
 
-.registration-form input[type="text"]:focus,
-.registration-form input[type="email"]:focus,
-.registration-form input[type="tel"]:focus,
-.registration-form input[type="date"]:focus,
-.registration-form input[type="password"]:focus,
-.registration-form select:focus {
+input[type="text"]:focus,
+input[type="email"]:focus,
+input[type="tel"]:focus,
+input[type="date"]:focus,
+input[type="password"]:focus,
+select:focus {
   color: #000000 !important;
   background-color: #ffffff !important;
   -webkit-text-fill-color: #000000 !important;
   caret-color: #000000 !important;
-  outline: none !important;
-  border-color: #16a34a !important;
-  box-shadow: 0 0 0 2px rgba(34, 197, 94, 0.2) !important;
 }
 
-.registration-form input[type="text"]::placeholder,
-.registration-form input[type="email"]::placeholder,
-.registration-form input[type="tel"]::placeholder,
-.registration-form input[type="password"]::placeholder {
+input[type="text"]::placeholder,
+input[type="email"]::placeholder,
+input[type="tel"]::placeholder,
+input[type="password"]::placeholder {
   color: #9ca3af !important;
   opacity: 0.7 !important;
-}
-
-.registration-form input[type="text"]::-webkit-input-placeholder,
-.registration-form input[type="email"]::-webkit-input-placeholder,
-.registration-form input[type="tel"]::-webkit-input-placeholder,
-.registration-form input[type="password"]::-webkit-input-placeholder {
-  color: #9ca3af !important;
-}
-
-.registration-form input[type="text"]::-moz-placeholder,
-.registration-form input[type="email"]::-moz-placeholder,
-.registration-form input[type="tel"]::-moz-placeholder,
-.registration-form input[type="password"]::-moz-placeholder {
-  color: #9ca3af !important;
-  opacity: 1 !important;
-}
-
-.registration-form input[type="text"]:-ms-input-placeholder,
-.registration-form input[type="email"]:-ms-input-placeholder,
-.registration-form input[type="tel"]:-ms-input-placeholder,
-.registration-form input[type="password"]:-ms-input-placeholder {
-  color: #9ca3af !important;
-}
-
-.registration-form input[type="text"]::selection,
-.registration-form input[type="email"]::selection,
-.registration-form input[type="tel"]::selection,
-.registration-form input[type="password"]::selection {
-  background-color: #3b82f6 !important;
-  color: #ffffff !important;
-}
-
-/* Date input specific fixes */
-.registration-form input[type="date"] {
-  color-scheme: light !important;
-}
-
-.registration-form input[type="date"]::-webkit-calendar-picker-indicator {
-  opacity: 1 !important;
-  color: #000000 !important;
-}
-
-/* Select dropdown fixes */
-.registration-form select option {
-  color: #000000 !important;
-  background-color: #ffffff !important;
 }
