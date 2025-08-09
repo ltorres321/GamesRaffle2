@@ -295,9 +295,10 @@ export default function RegisterPage() {
                     value={formData.phoneNumber}
                     onChange={handleInputChange}
                     placeholder="+1234567890"
-                    className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-green-600 text-gray-900 bg-white ${
+                    className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-green-600 !text-gray-900 !bg-white placeholder-gray-400 ${
                       errors.phoneNumber ? 'border-red-300' : 'border-gray-300'
                     }`}
+                    style={{ color: '#111827', backgroundColor: '#ffffff' }}
                   />
                   {errors.phoneNumber && <p className="text-red-600 text-xs mt-1">{errors.phoneNumber}</p>}
                   <p className="text-xs text-gray-500 mt-1">Required for SMS verification</p>
@@ -310,9 +311,10 @@ export default function RegisterPage() {
                     name="streetAddress"
                     value={formData.streetAddress}
                     onChange={handleInputChange}
-                    className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-green-600 text-gray-900 bg-white ${
+                    className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-green-600 !text-gray-900 !bg-white placeholder-gray-400 ${
                       errors.streetAddress ? 'border-red-300' : 'border-gray-300'
                     }`}
+                    style={{ color: '#111827', backgroundColor: '#ffffff' }}
                   />
                   {errors.streetAddress && <p className="text-red-600 text-xs mt-1">{errors.streetAddress}</p>}
                 </div>
@@ -325,24 +327,77 @@ export default function RegisterPage() {
                       name="city"
                       value={formData.city}
                       onChange={handleInputChange}
-                      className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-green-600 text-gray-900 bg-white ${
+                      className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-green-600 !text-gray-900 !bg-white placeholder-gray-400 ${
                         errors.city ? 'border-red-300' : 'border-gray-300'
                       }`}
+                      style={{ color: '#111827', backgroundColor: '#ffffff' }}
                     />
                     {errors.city && <p className="text-red-600 text-xs mt-1">{errors.city}</p>}
                   </div>
                   
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-1">State *</label>
-                    <input
-                      type="text"
+                    <select
                       name="state"
                       value={formData.state}
                       onChange={handleInputChange}
-                      className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-green-600 text-gray-900 bg-white ${
+                      className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-green-600 !text-gray-900 !bg-white ${
                         errors.state ? 'border-red-300' : 'border-gray-300'
                       }`}
-                    />
+                      style={{ color: '#111827', backgroundColor: '#ffffff' }}
+                    >
+                      <option value="">Select a state</option>
+                      <option value="AL">Alabama</option>
+                      <option value="AK">Alaska</option>
+                      <option value="AZ">Arizona</option>
+                      <option value="AR">Arkansas</option>
+                      <option value="CA">California</option>
+                      <option value="CO">Colorado</option>
+                      <option value="CT">Connecticut</option>
+                      <option value="DE">Delaware</option>
+                      <option value="FL">Florida</option>
+                      <option value="GA">Georgia</option>
+                      <option value="HI">Hawaii</option>
+                      <option value="ID">Idaho</option>
+                      <option value="IL">Illinois</option>
+                      <option value="IN">Indiana</option>
+                      <option value="IA">Iowa</option>
+                      <option value="KS">Kansas</option>
+                      <option value="KY">Kentucky</option>
+                      <option value="LA">Louisiana</option>
+                      <option value="ME">Maine</option>
+                      <option value="MD">Maryland</option>
+                      <option value="MA">Massachusetts</option>
+                      <option value="MI">Michigan</option>
+                      <option value="MN">Minnesota</option>
+                      <option value="MS">Mississippi</option>
+                      <option value="MO">Missouri</option>
+                      <option value="MT">Montana</option>
+                      <option value="NE">Nebraska</option>
+                      <option value="NV">Nevada</option>
+                      <option value="NH">New Hampshire</option>
+                      <option value="NJ">New Jersey</option>
+                      <option value="NM">New Mexico</option>
+                      <option value="NY">New York</option>
+                      <option value="NC">North Carolina</option>
+                      <option value="ND">North Dakota</option>
+                      <option value="OH">Ohio</option>
+                      <option value="OK">Oklahoma</option>
+                      <option value="OR">Oregon</option>
+                      <option value="PA">Pennsylvania</option>
+                      <option value="RI">Rhode Island</option>
+                      <option value="SC">South Carolina</option>
+                      <option value="SD">South Dakota</option>
+                      <option value="TN">Tennessee</option>
+                      <option value="TX">Texas</option>
+                      <option value="UT">Utah</option>
+                      <option value="VT">Vermont</option>
+                      <option value="VA">Virginia</option>
+                      <option value="WA">Washington</option>
+                      <option value="WV">West Virginia</option>
+                      <option value="WI">Wisconsin</option>
+                      <option value="WY">Wyoming</option>
+                    </select>
                     {errors.state && <p className="text-red-600 text-xs mt-1">{errors.state}</p>}
                   </div>
                 </div>
@@ -355,9 +410,10 @@ export default function RegisterPage() {
                       name="zipCode"
                       value={formData.zipCode}
                       onChange={handleInputChange}
-                      className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-green-600 text-gray-900 bg-white ${
+                      className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-green-600 !text-gray-900 !bg-white placeholder-gray-400 ${
                         errors.zipCode ? 'border-red-300' : 'border-gray-300'
                       }`}
+                      style={{ color: '#111827', backgroundColor: '#ffffff' }}
                     />
                     {errors.zipCode && <p className="text-red-600 text-xs mt-1">{errors.zipCode}</p>}
                   </div>
@@ -368,10 +424,10 @@ export default function RegisterPage() {
                       name="country"
                       value={formData.country}
                       onChange={handleInputChange}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-600 text-gray-900 bg-white"
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-600 !text-gray-900 !bg-white"
+                      style={{ color: '#111827', backgroundColor: '#ffffff' }}
                     >
                       <option value="United States">United States</option>
-                      <option value="Canada">Canada</option>
                     </select>
                   </div>
                 </div>
