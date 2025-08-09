@@ -4,12 +4,16 @@ import { useState, useEffect } from 'react'
 import { useParams } from 'next/navigation'
 import Header from '@/components/Header'
 import { Contest } from '@/types'
+import { useAuth } from '../../../contexts/AuthContext'
 import Link from 'next/link'
-import { 
-  ClockIcon, 
-  UserGroupIcon, 
+import toast from 'react-hot-toast'
+import {
+  ClockIcon,
+  UserGroupIcon,
   TrophyIcon,
-  ChevronRightIcon
+  ChevronRightIcon,
+  LockClosedIcon,
+  ExclamationTriangleIcon
 } from '@heroicons/react/24/outline'
 
 // Mock data - replace with API call
