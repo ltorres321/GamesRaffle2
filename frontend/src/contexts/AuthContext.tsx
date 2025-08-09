@@ -10,12 +10,19 @@ interface User {
   firstName: string
   lastName: string
   phoneNumber?: string
+  dateOfBirth?: string
+  streetAddress?: string
+  city?: string
+  state?: string
+  zipCode?: string
+  country?: string
   role: string
   emailVerified: boolean
   phoneVerified: boolean
   isVerified: boolean
   isActive: boolean
   requiresVerification?: boolean
+  taxVerificationStatus?: 'pending' | 'verified' | 'not_required'
 }
 
 interface AuthContextType {
