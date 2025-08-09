@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import { useParams } from 'next/navigation'
-import Header from '@/components/layout/Header'
+import Header from '@/components/Header'
 import { Contest } from '@/types'
 import Link from 'next/link'
 import { 
@@ -75,11 +75,26 @@ const mockEntrants = [
 
 export default function ContestDetailPage() {
   const params = useParams()
+  const { user, isAuthenticated } = useAuth()
   const [contest, setContest] = useState<Contest>(mockContest)
   const [entrants, setEntrants] = useState(mockEntrants)
   const [isEntering, setIsEntering] = useState(false)
 
+  // Check verification status
+  const isFullyVerified = user?.emailVerified && user?.phoneVerified
+  const canEnter = isAuthenticated && isFullyVerified
+
   const handleAddEntry = () => {
+    if (!isAuthenticated) {
+      toast.error('Please sign in to join contests')
+      return
+    }
+    
+    if (!isFullyVerified) {
+      toast.error('Please verify your email and phone number to join contests')
+      return
+    }
+
     setIsEntering(true)
     // Simulate API call
     setTimeout(() => {
@@ -133,8 +148,16 @@ export default function ContestDetailPage() {
               </div>
             </div>
             <div className="flex space-x-3">
-              <button className="btn-secondary px-6 py-2">
-                Add entries
+              <button
+                onClick={handleAddEntry}
+                disabled={isEntering || !canEnter}
+                className={`px-6 py-2 rounded-lg font-medium transition-colors ${
+                  canEnter
+                    ? 'btn-secondary'
+                    : 'bg-gray-600 text-gray-400 cursor-not-allowed'
+                }`}
+              >
+                {isEntering ? 'Adding...' : 'Add entries'}
               </button>
               <button className="btn-secondary px-6 py-2">
                 Copy link
@@ -146,18 +169,83 @@ export default function ContestDetailPage() {
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           {/* Main Content */}
           <div className="lg:col-span-2 space-y-6">
+            {/* Authentication Status Messages */}
+            {!isAuthenticated && (
+              <div className="bg-red-900/20 border border-red-500/30 rounded-xl p-6">
+                <div className="flex items-center space-x-3 mb-4">
+                  <LockClosedIcon className="h-6 w-6 text-red-400" />
+                  <h3 className="text-lg font-bold text-red-400">Sign In Required</h3>
+                </div>
+                <p className="text-gray-300 mb-4">
+                  You need to sign in to join contests and make picks. Create a free account to get started.
+                </p>
+                <div className="space-x-4">
+                  <Link
+                    href="/auth/login"
+                    className="btn-primary px-6 py-2 inline-block"
+                  >
+                    Sign In
+                  </Link>
+                  <Link
+                    href="/auth/register"
+                    className="btn-secondary px-6 py-2 inline-block"
+                  >
+                    Create Account
+                  </Link>
+                </div>
+              </div>
+            )}
+
+            {isAuthenticated && !isFullyVerified && (
+              <div className="bg-yellow-900/20 border border-yellow-500/30 rounded-xl p-6">
+                <div className="flex items-center space-x-3 mb-4">
+                  <ExclamationTriangleIcon className="h-6 w-6 text-yellow-400" />
+                  <h3 className="text-lg font-bold text-yellow-400">Account Verification Required</h3>
+                </div>
+                <p className="text-gray-300 mb-4">
+                  Complete your account verification to join contests and make picks.
+                </p>
+                <div className="text-sm text-yellow-200 mb-4">
+                  {!user?.emailVerified && !user?.phoneVerified && (
+                    <span>Please verify your email and phone number.</span>
+                  )}
+                  {!user?.emailVerified && user?.phoneVerified && (
+                    <span>Please verify your email address.</span>
+                  )}
+                  {user?.emailVerified && !user?.phoneVerified && (
+                    <span>Please verify your phone number.</span>
+                  )}
+                </div>
+                <Link
+                  href="/auth/verify"
+                  className="btn-primary px-6 py-2 inline-block"
+                >
+                  Complete Verification
+                </Link>
+              </div>
+            )}
+
             {/* My Entries */}
             <div className="bg-dark-800 rounded-xl p-6">
               <h2 className="text-xl font-bold text-white mb-4">My entries (0/150)</h2>
               <div className="bg-dark-700 rounded-lg p-8 text-center">
                 <p className="text-gray-400 mb-4">You don't have any entries.</p>
-                <button 
+                <button
                   onClick={handleAddEntry}
-                  disabled={isEntering}
-                  className="btn-primary px-6 py-2"
+                  disabled={isEntering || !canEnter}
+                  className={`px-6 py-2 rounded-lg font-medium transition-colors ${
+                    canEnter
+                      ? 'btn-primary'
+                      : 'bg-gray-600 text-gray-400 cursor-not-allowed'
+                  }`}
                 >
                   {isEntering ? 'Adding...' : 'Add entries'}
                 </button>
+                {!canEnter && isAuthenticated && (
+                  <p className="text-sm text-gray-500 mt-2">
+                    Complete account verification to join contests
+                  </p>
+                )}
               </div>
             </div>
 
