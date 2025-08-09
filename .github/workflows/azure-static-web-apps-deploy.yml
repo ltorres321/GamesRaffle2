@@ -27,114 +27,11 @@ jobs:
           repo_token: ${{ secrets.GITHUB_TOKEN }}
           action: "upload"
           app_location: "/frontend"
-          api_location: "/backend"
-          output_location: ".next"
+          api_location: ""
+          output_location: ""
         env:
-          # Database Configuration
-          SQL_CONNECTION_STRING: ${{ secrets.SQL_CONNECTION_STRING }}
-          
-          # SportRadar API Configuration  
-          SPORTRADAR_API_KEY: ${{ secrets.SPORTRADAR_API_KEY }}
-          SPORTRADAR_BASE_URL: "https://api.sportradar.com/nfl/official"
-          SPORTRADAR_ACCESS_LEVEL: "trial"
-          SPORTRADAR_LANGUAGE: "en"
-          SPORTRADAR_TIMEOUT: "15000"
-          SPORTRADAR_RETRY_ATTEMPTS: "3"
-          SPORTRADAR_RETRY_DELAY: "2000"
-          SPORTRADAR_CACHE_TTL: "600"
-          SPORTRADAR_SCHEDULE_CACHE_TTL: "86400"
-          SPORTRADAR_SCORE_CACHE_TTL: "300"
-
-          # Authentication & Security
-          JWT_SECRET: ${{ secrets.JWT_SECRET }}
-          SESSION_SECRET: ${{ secrets.SESSION_SECRET }}
-          JWT_ACCESS_EXPIRY: "15m"
-          JWT_REFRESH_EXPIRY: "30d"
-          JWT_ISSUER: "survivor-sports-api"
-          JWT_AUDIENCE: "survivor-sports-app"
-          BCRYPT_SALT_ROUNDS: "12"
-
-          # Application Configuration
-          NODE_ENV: "production"
-          PORT: "80"
-          HOST: "0.0.0.0"
-
-          # CORS Configuration
-          CORS_ORIGINS: "https://your-static-web-app-url.azurestaticapps.net,https://survivorsports.com"
-
-          # Azure Storage (for file uploads)
-          STORAGE_CONNECTION_STRING: ${{ secrets.STORAGE_CONNECTION_STRING }}
-          MAX_FILE_SIZE: "10485760"
-
-          # Application Insights (Azure Monitoring)
-          APPINSIGHTS_INSTRUMENTATIONKEY: ${{ secrets.APPINSIGHTS_INSTRUMENTATIONKEY }}
-
-          # Rate Limiting
-          RATE_LIMIT_WINDOW: "900000"
-          RATE_LIMIT_MAX: "100"
-          AUTH_RATE_LIMIT_MAX: "5"
-
-          # Session Configuration (Memory-based)
-          SESSION_MAX_AGE: "2592000000"
-          SESSION_TTL: "2592000"
-
-          # Cache TTL Settings (in seconds)
-          CACHE_TTL: "3600"
-          TEMP_TTL: "600"
-          GAME_CACHE_TTL: "3600"
-
-          # Database Pool Configuration
-          DB_POOL_MAX: "10"
-          DB_POOL_MIN: "0"
-          DB_IDLE_TIMEOUT: "30000"
-          DB_ACQUIRE_TIMEOUT: "60000"
-          DB_CREATE_TIMEOUT: "30000"
-          DB_DESTROY_TIMEOUT: "5000"
-          DB_REAP_INTERVAL: "1000"
-          DB_CREATE_RETRY_INTERVAL: "200"
-          DB_REQUEST_TIMEOUT: "30000"
-          DB_CONNECTION_TIMEOUT: "30000"
-
-          # Game Configuration
-          DEFAULT_MAX_PARTICIPANTS: "100"
-          DEFAULT_ENTRY_FEE: "25.00"
-          DEFAULT_START_WEEK: "1"
-          DEFAULT_END_WEEK: "18"
-          DEFAULT_TWO_PICKS_WEEK: "12"
-          CURRENT_NFL_SEASON: "2024"
-
-          # Pick Deadline Configuration
-          PICK_DEADLINE_HOUR: "20"
-          PICK_DEADLINE_MINUTE: "0"
-          PICK_DEADLINE_TIMEZONE: "America/New_York"
-
-          # Cron Job Configuration
-          SCORE_CHECK_CRON: "0 3 * * 2"
-          SCHEDULE_UPDATE_CRON: "0 2 * * *"
-          GAME_PROCESSING_CRON: "*/15 * * * *"
-          CRON_TIMEZONE: "America/New_York"
-
-          # Logging Configuration
-          LOG_LEVEL: "info"
-          LOG_FILE_ENABLED: "false"
-          LOG_FILENAME: "survivor-api.log"
-          LOG_MAX_SIZE: "5242880"
-          LOG_MAX_FILES: "5"
-
-          # Email Configuration (Optional)
-          EMAIL_ENABLED: "false"
-          EMAIL_PROVIDER: "sendgrid"
-          SENDGRID_API_KEY: ${{ secrets.SENDGRID_API_KEY }}
-          FROM_EMAIL: "noreply@survivorsports.com"
-          FROM_NAME: "Survivor Sports"
-
-          # Health Check Configuration
-          HEALTH_CHECK_INTERVAL: "30000"
-          HEALTH_CHECK_TIMEOUT: "5000"
-
-          # Metrics Configuration
-          METRICS_ENABLED: "false"
-          METRICS_ENDPOINT: "/metrics"
+          # Frontend Configuration
+          NEXT_PUBLIC_API_URL: "/api"
 
   close_pull_request_job:
     if: github.event_name == 'pull_request' && github.event.action == 'closed'
