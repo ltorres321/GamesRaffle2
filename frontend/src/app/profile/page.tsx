@@ -1,12 +1,12 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import Header from '@/components/Header'
 import { useAuth } from '@/contexts/AuthContext'
 import toast from 'react-hot-toast'
-import { 
+import {
   UserCircleIcon,
   ShieldCheckIcon,
   ExclamationTriangleIcon,
@@ -24,10 +24,20 @@ export default function ProfilePage() {
   const { user, isAuthenticated, logout } = useAuth()
   const router = useRouter()
   const [activeTab, setActiveTab] = useState('account')
+  const [mounted, setMounted] = useState(false)
 
-  // Redirect if not authenticated
-  if (!isAuthenticated || !user) {
-    router.push('/auth/login')
+  useEffect(() => {
+    setMounted(true)
+  }, [])
+
+  useEffect(() => {
+    if (mounted && (!isAuthenticated || !user)) {
+      router.push('/auth/login')
+    }
+  }, [mounted, isAuthenticated, user, router])
+
+  // Show nothing during SSR or while checking authentication
+  if (!mounted || !isAuthenticated || !user) {
     return null
   }
 
