@@ -64,10 +64,10 @@ export default function Header() {
               </div>
             ) : (
               <div className="flex items-center space-x-3">
-                <Link href="/login" className="nav-link">
+                <Link href="/auth/login" className="nav-link">
                   Login
                 </Link>
-                <Link href="/register" className="btn-primary text-sm px-4 py-2">
+                <Link href="/auth/register" className="btn-primary text-sm px-4 py-2">
                   Sign Up
                 </Link>
               </div>
