@@ -20,10 +20,16 @@ const registerSchema = Joi.object({
   email: Joi.string().email().required(),
   password: Joi.string().min(8).max(128).required(),
   confirmPassword: Joi.string().valid(Joi.ref('password')).required(),
-  firstName: Joi.string().min(1).max(100).required(),
-  lastName: Joi.string().min(1).max(100).required(),
+  firstName: Joi.string().min(1).max(100).required(), // As appears on license/passport
+  lastName: Joi.string().min(1).max(100).required(), // As appears on license/passport
   dateOfBirth: Joi.date().max('now').required(),
-  phoneNumber: Joi.string().pattern(/^[\+]?[1-9][\d]{0,15}$/).optional()
+  phoneNumber: Joi.string().pattern(/^[\+]?[1-9][\d]{0,15}$/).required(), // Required for SMS verification
+  // Address fields (required for license verification)
+  streetAddress: Joi.string().min(5).max(200).required(),
+  city: Joi.string().min(2).max(100).required(),
+  state: Joi.string().min(2).max(50).required(),
+  zipCode: Joi.string().min(5).max(20).required(),
+  country: Joi.string().min(2).max(50).default('United States')
 });
 
 const loginSchema = Joi.object({
@@ -49,6 +55,16 @@ const validateAge = (dateOfBirth) => {
   return age;
 };
 
+// Helper function to generate verification tokens
+const generateVerificationToken = () => {
+  return Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15);
+};
+
+// Helper function to generate SMS verification code
+const generateSMSCode = () => {
+  return Math.floor(100000 + Math.random() * 900000).toString(); // 6-digit code
+};
+
 // Register new user
 router.post('/register', authRateLimit, catchAsync(async (req, res) => {
   // Validate input
@@ -57,7 +73,10 @@ router.post('/register', authRateLimit, catchAsync(async (req, res) => {
     throw createValidationError('registration', error.details[0].message);
   }
 
-  const { username, email, password, firstName, lastName, dateOfBirth, phoneNumber } = value;
+  const {
+    username, email, password, firstName, lastName, dateOfBirth, phoneNumber,
+    streetAddress, city, state, zipCode, country
+  } = value;
 
   // Validate age requirement (21+)
   const age = validateAge(dateOfBirth);
@@ -67,7 +86,7 @@ router.post('/register', authRateLimit, catchAsync(async (req, res) => {
 
   // Check if user already exists
   const existingUser = await database.query(`
-    SELECT UserId FROM Users 
+    SELECT UserId FROM Users
     WHERE Email = @email OR Username = @username
   `, { email, username });
 
@@ -78,29 +97,50 @@ router.post('/register', authRateLimit, catchAsync(async (req, res) => {
   // Hash password
   const passwordHash = await authService.hashPassword(password);
 
+  // Generate verification tokens
+  const emailVerificationToken = generateVerificationToken();
+  const phoneVerificationCode = generateSMSCode();
+  
+  // Set expiration times (24 hours for email, 10 minutes for SMS)
+  const emailExpires = new Date();
+  emailExpires.setHours(emailExpires.getHours() + 24);
+  const phoneExpires = new Date();
+  phoneExpires.setMinutes(phoneExpires.getMinutes() + 10);
+
   // Create user
   const userId = uuidv4();
   
   await database.query(`
     INSERT INTO Users (
-      UserId, Username, Email, PasswordHash, FirstName, LastName, 
-      DateOfBirth, PhoneNumber, Role, IsVerified, IsActive
+      UserId, Username, Email, PasswordHash, FirstName, LastName,
+      DateOfBirth, PhoneNumber, StreetAddress, City, State, ZipCode, Country,
+      EmailVerificationToken, EmailVerificationExpires,
+      PhoneVerificationCode, PhoneVerificationExpires,
+      Role, EmailVerified, PhoneVerified, IsVerified, IsActive
     ) VALUES (
       @userId, @username, @email, @passwordHash, @firstName, @lastName,
-      @dateOfBirth, @phoneNumber, 'Player', 0, 1
+      @dateOfBirth, @phoneNumber, @streetAddress, @city, @state, @zipCode, @country,
+      @emailVerificationToken, @emailExpires,
+      @phoneVerificationCode, @phoneExpires,
+      'Player', 0, 0, 0, 1
     )
   `, {
-    userId,
-    username,
-    email,
-    passwordHash,
-    firstName,
-    lastName,
-    dateOfBirth,
-    phoneNumber: phoneNumber || null
+    userId, username, email, passwordHash, firstName, lastName,
+    dateOfBirth, phoneNumber, streetAddress, city, state, zipCode, country,
+    emailVerificationToken, emailExpires, phoneVerificationCode, phoneExpires
   });
 
-  // Generate tokens
+  // TODO: Send email verification (would integrate with email service)
+  logger.logBusinessEvent('email_verification_sent', {
+    userId, email, token: emailVerificationToken
+  }, userId);
+
+  // TODO: Send SMS verification (would integrate with SMS service like Twilio)
+  logger.logBusinessEvent('sms_verification_sent', {
+    userId, phoneNumber, code: phoneVerificationCode
+  }, userId);
+
+  // Generate tokens (user can login but features are limited until verified)
   const { accessToken, refreshToken, refreshPayload } = authService.generateTokens(userId, email, 'Player');
 
   // Calculate refresh token expiry
@@ -119,7 +159,7 @@ router.post('/register', authRateLimit, catchAsync(async (req, res) => {
 
   res.status(201).json({
     success: true,
-    message: 'User registered successfully',
+    message: 'User registered successfully. Please verify your email and phone number to access all features.',
     data: {
       user: {
         id: userId,
@@ -127,9 +167,13 @@ router.post('/register', authRateLimit, catchAsync(async (req, res) => {
         email,
         firstName,
         lastName,
+        phoneNumber,
         role: 'Player',
+        emailVerified: false,
+        phoneVerified: false,
         isVerified: false,
-        isActive: true
+        isActive: true,
+        requiresVerification: true
       },
       tokens: {
         accessToken,
@@ -426,6 +470,194 @@ router.put('/password', authenticate, catchAsync(async (req, res) => {
   res.json({
     success: true,
     message: 'Password changed successfully'
+  });
+}));
+// Email verification endpoint
+router.post('/verify-email', catchAsync(async (req, res) => {
+  const { token } = req.body;
+  
+  if (!token) {
+    throw createValidationError('token', 'Verification token is required');
+  }
+
+  // Find user with this verification token
+  const result = await database.query(`
+    SELECT UserId, Email, EmailVerificationExpires 
+    FROM Users 
+    WHERE EmailVerificationToken = @token
+      AND EmailVerificationExpires > GETUTCDATE()
+      AND EmailVerified = 0
+  `, { token });
+
+  if (!result.recordset[0]) {
+    throw createValidationError('token', 'Invalid or expired verification token');
+  }
+
+  const user = result.recordset[0];
+
+  // Mark email as verified
+  await database.query(`
+    UPDATE Users 
+    SET EmailVerified = 1, 
+        EmailVerifiedAt = GETUTCDATE(),
+        EmailVerificationToken = NULL,
+        EmailVerificationExpires = NULL,
+        UpdatedAt = GETUTCDATE()
+    WHERE UserId = @userId
+  `, { userId: user.UserId });
+
+  // Log verification
+  logger.logBusinessEvent('email_verified', { userId: user.UserId, email: user.Email }, user.UserId);
+
+  res.json({
+    success: true,
+    message: 'Email verified successfully'
+  });
+}));
+
+// SMS verification endpoint
+router.post('/verify-phone', catchAsync(async (req, res) => {
+  const { code } = req.body;
+  
+  if (!code) {
+    throw createValidationError('code', 'Verification code is required');
+  }
+
+  // Find user with this verification code
+  const result = await database.query(`
+    SELECT UserId, PhoneNumber, PhoneVerificationExpires 
+    FROM Users 
+    WHERE PhoneVerificationCode = @code
+      AND PhoneVerificationExpires > GETUTCDATE()
+      AND PhoneVerified = 0
+  `, { code });
+
+  if (!result.recordset[0]) {
+    throw createValidationError('code', 'Invalid or expired verification code');
+  }
+
+  const user = result.recordset[0];
+
+  // Mark phone as verified
+  await database.query(`
+    UPDATE Users 
+    SET PhoneVerified = 1, 
+        PhoneVerifiedAt = GETUTCDATE(),
+        PhoneVerificationCode = NULL,
+        PhoneVerificationExpires = NULL,
+        UpdatedAt = GETUTCDATE()
+    WHERE UserId = @userId
+  `, { userId: user.UserId });
+
+  // Check if both email and phone are verified, then mark user as fully verified
+  const userStatus = await database.query(`
+    SELECT EmailVerified, PhoneVerified FROM Users WHERE UserId = @userId
+  `, { userId: user.UserId });
+
+  const userVerification = userStatus.recordset[0];
+  if (userVerification.EmailVerified && userVerification.PhoneVerified) {
+    await database.query(`
+      UPDATE Users 
+      SET IsVerified = 1, UpdatedAt = GETUTCDATE()
+      WHERE UserId = @userId
+    `, { userId: user.UserId });
+  }
+
+  // Log verification
+  logger.logBusinessEvent('phone_verified', { userId: user.UserId, phoneNumber: user.PhoneNumber }, user.UserId);
+
+  res.json({
+    success: true,
+    message: 'Phone number verified successfully',
+    data: {
+      fullyVerified: userVerification.EmailVerified && userVerification.PhoneVerified
+    }
+  });
+}));
+
+// Resend email verification
+router.post('/resend-email-verification', authenticate, catchAsync(async (req, res) => {
+  const userId = req.user.id;
+
+  // Check if user needs email verification
+  const userResult = await database.query(`
+    SELECT Email, EmailVerified FROM Users WHERE UserId = @userId
+  `, { userId });
+
+  if (!userResult.recordset[0]) {
+    throw createNotFoundError('User', userId);
+  }
+
+  const user = userResult.recordset[0];
+  if (user.EmailVerified) {
+    throw createValidationError('verification', 'Email is already verified');
+  }
+
+  // Generate new verification token
+  const emailVerificationToken = generateVerificationToken();
+  const emailExpires = new Date();
+  emailExpires.setHours(emailExpires.getHours() + 24);
+
+  // Update user with new token
+  await database.query(`
+    UPDATE Users 
+    SET EmailVerificationToken = @token,
+        EmailVerificationExpires = @expires,
+        UpdatedAt = GETUTCDATE()
+    WHERE UserId = @userId
+  `, { userId, token: emailVerificationToken, expires: emailExpires });
+
+  // TODO: Send email verification (would integrate with email service)
+  logger.logBusinessEvent('email_verification_resent', { 
+    userId, email: user.Email, token: emailVerificationToken 
+  }, userId);
+
+  res.json({
+    success: true,
+    message: 'Verification email sent successfully'
+  });
+}));
+
+// Resend SMS verification
+router.post('/resend-sms-verification', authenticate, catchAsync(async (req, res) => {
+  const userId = req.user.id;
+
+  // Check if user needs phone verification
+  const userResult = await database.query(`
+    SELECT PhoneNumber, PhoneVerified FROM Users WHERE UserId = @userId
+  `, { userId });
+
+  if (!userResult.recordset[0]) {
+    throw createNotFoundError('User', userId);
+  }
+
+  const user = userResult.recordset[0];
+  if (user.PhoneVerified) {
+    throw createValidationError('verification', 'Phone number is already verified');
+  }
+
+  // Generate new verification code
+  const phoneVerificationCode = generateSMSCode();
+  const phoneExpires = new Date();
+  phoneExpires.setMinutes(phoneExpires.getMinutes() + 10);
+
+  // Update user with new code
+  await database.query(`
+    UPDATE Users 
+    SET PhoneVerificationCode = @code,
+        PhoneVerificationExpires = @expires,
+        UpdatedAt = GETUTCDATE()
+    WHERE UserId = @userId
+  `, { userId, code: phoneVerificationCode, expires: phoneExpires });
+
+  // TODO: Send SMS verification (would integrate with SMS service like Twilio)
+  logger.logBusinessEvent('sms_verification_resent', { 
+    userId, phoneNumber: user.PhoneNumber, code: phoneVerificationCode 
+  }, userId);
+
+  res.json({
+    success: true,
+    message: 'Verification code sent successfully'
   });
 }));
 

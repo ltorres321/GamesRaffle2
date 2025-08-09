@@ -32,22 +32,52 @@ IF OBJECT_ID('dbo.Teams', 'U') IS NOT NULL DROP TABLE dbo.Teams;
 IF OBJECT_ID('dbo.Users', 'U') IS NOT NULL DROP TABLE dbo.Users;
 GO
 
--- Create Users table
+-- Create Users table with enhanced registration fields
 CREATE TABLE dbo.Users (
     UserId UNIQUEIDENTIFIER PRIMARY KEY DEFAULT NEWID(),
     Username NVARCHAR(50) NOT NULL UNIQUE,
     Email NVARCHAR(255) NOT NULL UNIQUE,
     PasswordHash NVARCHAR(255) NOT NULL,
-    FirstName NVARCHAR(100) NOT NULL,
-    LastName NVARCHAR(100) NOT NULL,
+    FirstName NVARCHAR(100) NOT NULL, -- As appears on license/passport
+    LastName NVARCHAR(100) NOT NULL, -- As appears on license/passport
     DateOfBirth DATE NOT NULL,
-    PhoneNumber NVARCHAR(20),
+    PhoneNumber NVARCHAR(20) NOT NULL, -- Required for SMS verification
+    
+    -- Address fields (required for license verification)
+    StreetAddress NVARCHAR(200) NOT NULL,
+    City NVARCHAR(100) NOT NULL,
+    State NVARCHAR(50) NOT NULL,
+    ZipCode NVARCHAR(20) NOT NULL,
+    Country NVARCHAR(50) NOT NULL DEFAULT 'United States',
+    
+    -- Email verification
+    EmailVerified BIT NOT NULL DEFAULT 0,
+    EmailVerificationToken NVARCHAR(100),
+    EmailVerificationExpires DATETIME2,
+    
+    -- Phone verification
+    PhoneVerified BIT NOT NULL DEFAULT 0,
+    PhoneVerificationCode NVARCHAR(10),
+    PhoneVerificationExpires DATETIME2,
+    
+    -- Account status and roles
     Role NVARCHAR(20) NOT NULL DEFAULT 'Player' CHECK (Role IN ('Player', 'Admin', 'SuperAdmin')),
-    IsVerified BIT NOT NULL DEFAULT 0,
+    IsVerified BIT NOT NULL DEFAULT 0, -- Overall account verification status
     IsActive BIT NOT NULL DEFAULT 1,
+    RequiresIdentityVerification BIT NOT NULL DEFAULT 0, -- Set to true when user wins
+    
+    -- Tax information (collected only when needed for winners)
+    SSN NVARCHAR(20), -- Encrypted, only for US tax winners
+    TaxVerificationStatus NVARCHAR(20) DEFAULT 'NotRequired' CHECK (TaxVerificationStatus IN ('NotRequired', 'Required', 'Pending', 'Complete')),
+    
+    -- Timestamps
     CreatedAt DATETIME2 NOT NULL DEFAULT GETUTCDATE(),
     UpdatedAt DATETIME2 NOT NULL DEFAULT GETUTCDATE(),
     LastLoginAt DATETIME2,
+    EmailVerifiedAt DATETIME2,
+    PhoneVerifiedAt DATETIME2,
+    
+    -- Session management
     RefreshToken NVARCHAR(500),
     RefreshTokenExpiresAt DATETIME2
 );

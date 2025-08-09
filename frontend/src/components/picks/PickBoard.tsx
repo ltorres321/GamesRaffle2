@@ -1,8 +1,11 @@
 'use client'
 
 import { useState } from 'react'
+import Link from 'next/link'
 import { Matchup, Pick, Team } from '@/types'
-import { ClockIcon, PlayIcon } from '@heroicons/react/24/outline'
+import { ClockIcon, PlayIcon, ExclamationTriangleIcon, LockClosedIcon } from '@heroicons/react/24/outline'
+import { useAuth, useRequireAuth } from '../../contexts/AuthContext'
+import toast from 'react-hot-toast'
 
 interface PickBoardProps {
   matchups: Matchup[]
@@ -13,15 +16,20 @@ interface PickBoardProps {
   existingPicks: Pick[]
 }
 
-export default function PickBoard({ 
-  matchups, 
-  selectedTeams, 
-  onTeamSelect, 
-  currentWeek, 
+export default function PickBoard({
+  matchups,
+  selectedTeams,
+  onTeamSelect,
+  currentWeek,
   lockedWeeks,
-  existingPicks 
+  existingPicks
 }: PickBoardProps) {
+  const { user, isAuthenticated } = useAuth()
   const [selectedWeekTab, setSelectedWeekTab] = useState(currentWeek)
+
+  // Check verification status
+  const isFullyVerified = user?.emailVerified && user?.phoneVerified
+  const canMakePicks = isAuthenticated && isFullyVerified
 
   // Generate week tabs (1-18 for NFL season)
   const weekTabs = Array.from({ length: 18 }, (_, i) => i + 1)
@@ -31,8 +39,22 @@ export default function PickBoard({
   }
 
   const isTeamDisabled = (teamId: string) => {
-    // Team is disabled if it's been picked in a previous week
-    return existingPicks.some(pick => pick.teamId === teamId)
+    // Team is disabled if it's been picked in a previous week OR user can't make picks
+    return !canMakePicks || existingPicks.some(pick => pick.teamId === teamId)
+  }
+
+  const handleTeamSelect = (teamId: string, weekNumber: number) => {
+    if (!isAuthenticated) {
+      toast.error('Please sign in to make picks')
+      return
+    }
+    
+    if (!isFullyVerified) {
+      toast.error('Please verify your email and phone number to make picks')
+      return
+    }
+    
+    onTeamSelect(teamId, weekNumber)
   }
 
   const getTeamHelmetImage = (alias: string) => {
@@ -100,14 +122,66 @@ export default function PickBoard({
         </div>
       </div>
 
-      {/* Instructions */}
+      {/* Instructions & Authentication Status */}
       <div className="text-center mb-6">
         <h2 className="text-2xl font-bold text-white mb-2">
           SELECT A TEAM TO WIN
         </h2>
-        <p className="text-gray-400">
+        <p className="text-gray-400 mb-4">
           Pick the team you think will win. Mon 8:20 PM
         </p>
+
+        {/* Authentication Status Messages */}
+        {!isAuthenticated && (
+          <div className="bg-red-900/20 border border-red-500/30 rounded-lg p-4 mb-4">
+            <div className="flex items-center justify-center space-x-2 text-red-400">
+              <LockClosedIcon className="h-5 w-5" />
+              <span className="font-medium">Sign in required to make picks</span>
+            </div>
+            <div className="mt-2 space-x-4">
+              <Link
+                href="/auth/login"
+                className="text-sm text-red-400 hover:text-red-300 underline"
+              >
+                Sign In
+              </Link>
+              <Link
+                href="/auth/register"
+                className="text-sm text-red-400 hover:text-red-300 underline"
+              >
+                Create Account
+              </Link>
+            </div>
+          </div>
+        )}
+
+        {isAuthenticated && !isFullyVerified && (
+          <div className="bg-yellow-900/20 border border-yellow-500/30 rounded-lg p-4 mb-4">
+            <div className="flex items-center justify-center space-x-2 text-yellow-400">
+              <ExclamationTriangleIcon className="h-5 w-5" />
+              <span className="font-medium">Account verification required</span>
+            </div>
+            <div className="mt-2 text-sm text-yellow-300">
+              {!user?.emailVerified && !user?.phoneVerified && (
+                <span>Please verify your email and phone number to make picks.</span>
+              )}
+              {!user?.emailVerified && user?.phoneVerified && (
+                <span>Please verify your email address to make picks.</span>
+              )}
+              {user?.emailVerified && !user?.phoneVerified && (
+                <span>Please verify your phone number to make picks.</span>
+              )}
+              <div className="mt-2">
+                <Link
+                  href="/auth/verify"
+                  className="text-yellow-400 hover:text-yellow-300 underline font-medium"
+                >
+                  Complete Verification
+                </Link>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
 
       {/* Matchups Grid */}
@@ -116,7 +190,7 @@ export default function PickBoard({
           <MatchupCard
             key={matchup.id}
             matchup={matchup}
-            onTeamSelect={(teamId) => onTeamSelect(teamId, selectedWeekTab)}
+            onTeamSelect={(teamId) => handleTeamSelect(teamId, selectedWeekTab)}
             selectedTeams={selectedTeams}
             isLocked={lockedWeeks.includes(selectedWeekTab)}
             existingPicks={existingPicks}
@@ -147,10 +221,14 @@ interface MatchupCardProps {
 }
 
 function MatchupCard({ matchup, onTeamSelect, selectedTeams, isLocked, existingPicks }: MatchupCardProps) {
+  const { isAuthenticated, user } = useAuth()
+  const isFullyVerified = user?.emailVerified && user?.phoneVerified
+  const canMakePicks = isAuthenticated && isFullyVerified
+  
   const isTeamASelected = selectedTeams.includes(matchup.teamAId)
   const isTeamBSelected = selectedTeams.includes(matchup.teamBId)
-  const isTeamADisabled = existingPicks.some(pick => pick.teamId === matchup.teamAId)
-  const isTeamBDisabled = existingPicks.some(pick => pick.teamId === matchup.teamBId)
+  const isTeamADisabled = !canMakePicks || existingPicks.some(pick => pick.teamId === matchup.teamAId)
+  const isTeamBDisabled = !canMakePicks || existingPicks.some(pick => pick.teamId === matchup.teamBId)
 
   const formatTime = (startTime: string) => {
     const date = new Date(startTime)
@@ -195,7 +273,7 @@ function MatchupCard({ matchup, onTeamSelect, selectedTeams, isLocked, existingP
           team={matchup.teamA}
           isSelected={isTeamASelected}
           isDisabled={isTeamADisabled || isLocked}
-          onClick={() => !isTeamADisabled && !isLocked && onTeamSelect(matchup.teamAId)}
+          onClick={() => canMakePicks && !isTeamADisabled && !isLocked && onTeamSelect(matchup.teamAId)}
           showDisabledReason={isTeamADisabled}
         />
 
@@ -209,7 +287,7 @@ function MatchupCard({ matchup, onTeamSelect, selectedTeams, isLocked, existingP
           team={matchup.teamB}
           isSelected={isTeamBSelected}
           isDisabled={isTeamBDisabled || isLocked}
-          onClick={() => !isTeamBDisabled && !isLocked && onTeamSelect(matchup.teamBId)}
+          onClick={() => canMakePicks && !isTeamBDisabled && !isLocked && onTeamSelect(matchup.teamBId)}
           showDisabledReason={isTeamBDisabled}
         />
       </div>
