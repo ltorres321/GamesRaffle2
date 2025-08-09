@@ -194,8 +194,8 @@ export default function RegisterPage() {
               <div className="space-y-4">
                 <h2 className="text-xl font-semibold text-gray-900 mb-4">Personal Information</h2>
                 
-                <div className="grid grid-cols-2 gap-4">
-                  <div>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="flex flex-col">
                     <label className="block text-sm font-medium text-gray-700 mb-1">
                       First Name (as on license) *
                     </label>
@@ -204,14 +204,14 @@ export default function RegisterPage() {
                       name="firstName"
                       value={formData.firstName}
                       onChange={handleInputChange}
-                      className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-green-600 ${
+                      className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-green-600 text-gray-900 ${
                         errors.firstName ? 'border-red-300' : 'border-gray-300'
                       }`}
                     />
                     {errors.firstName && <p className="text-red-600 text-xs mt-1">{errors.firstName}</p>}
                   </div>
                   
-                  <div>
+                  <div className="flex flex-col">
                     <label className="block text-sm font-medium text-gray-700 mb-1">
                       Last Name (as on license) *
                     </label>
@@ -220,7 +220,7 @@ export default function RegisterPage() {
                       name="lastName"
                       value={formData.lastName}
                       onChange={handleInputChange}
-                      className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-green-600 ${
+                      className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-green-600 text-gray-900 ${
                         errors.lastName ? 'border-red-300' : 'border-gray-300'
                       }`}
                     />
@@ -235,7 +235,7 @@ export default function RegisterPage() {
                     name="email"
                     value={formData.email}
                     onChange={handleInputChange}
-                    className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-green-600 ${
+                    className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-green-600 text-gray-900 ${
                       errors.email ? 'border-red-300' : 'border-gray-300'
                     }`}
                   />
@@ -249,7 +249,7 @@ export default function RegisterPage() {
                     name="username"
                     value={formData.username}
                     onChange={handleInputChange}
-                    className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-green-600 ${
+                    className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-green-600 text-gray-900 ${
                       errors.username ? 'border-red-300' : 'border-gray-300'
                     }`}
                   />
@@ -263,9 +263,10 @@ export default function RegisterPage() {
                     name="dateOfBirth"
                     value={formData.dateOfBirth}
                     onChange={handleInputChange}
-                    className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-green-600 ${
+                    className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-green-600 text-gray-900 bg-white ${
                       errors.dateOfBirth ? 'border-red-300' : 'border-gray-300'
                     }`}
+                    style={{ colorScheme: 'light' }}
                   />
                   {errors.dateOfBirth && <p className="text-red-600 text-xs mt-1">{errors.dateOfBirth}</p>}
                   <p className="text-xs text-gray-500 mt-1">You must be at least 21 years old</p>
