@@ -36,39 +36,7 @@ export default function PickBoard({
   }
 
   const getTeamHelmetImage = (alias: string) => {
-    const helmetMap: Record<string, string> = {
-      'ARI': '/helmets/H_ArizonaCardinals1.jpg',
-      'ATL': '/helmets/H_Atlanta1.jpg',
-      'BAL': '/helmets/H_BaltimoreRavens1.jpg',
-      'CIN': '/helmets/H_Begnals1.jpg',
-      'BUF': '/helmets/H_Buffulo1.jpg',
-      'CAR': '/helmets/H_CarolinaPanthers1.jpg',
-      'CHI': '/helmets/H_ChicagoBears1.jpg',
-      'DAL': '/helmets/H_DallasCowboys1.jpg',
-      'DEN': '/helmets/H_Denver1.jpg',
-      'DET': '/helmets/H_DetriotLions1.jpg',
-      'HOU': '/helmets/H_HoustonTexans1.jpg',
-      'IND': '/helmets/H_IndianapolisColts1.jpg',
-      'JAX': '/helmets/H_Jax1.jpg',
-      'NYJ': '/helmets/H_Jets1.jpg',
-      'KC': '/helmets/H_KansasCity1.jpg',
-      'LAR': '/helmets/H_LARams1.jpg',
-      'LAC': '/helmets/H_LosAngelesChargers1.jpg',
-      'MIA': '/helmets/H_Miami5.jpg',
-      'MIN': '/helmets/H_MinnesotaVikings1.jpg',
-      'NE': '/helmets/H_NewEngland1.jpg',
-      'NO': '/helmets/H_NewOrleansSaints1.jpg',
-      'NYG': '/helmets/H_NewYorkGiants1.jpg',
-      'LV': '/helmets/H_Oakland1.jpg',
-      'PHI': '/helmets/H_Philadelphia1.jpg',
-      'PIT': '/helmets/H_Pittsburgh1.jpg',
-      'SEA': '/helmets/H_Seattle1.jpg',
-      'SF': '/helmets/H_SF1.jpg',
-      'TB': '/helmets/H_Tampa1.jpg',
-      'TEN': '/helmets/H_TennesseeTitans1.jpg',
-      'WAS': '/helmets/H_WashingtonRedSkins1.jpg'
-    }
-    return helmetMap[alias] || `/helmets/H_${alias}1.jpg`
+    return `/darklogo/${alias}.gif`
   }
 
   const getTeamLogo = (team: Team) => {
@@ -208,7 +176,7 @@ function MatchupCard({ matchup, onTeamSelect, selectedTeams, isLocked, existingP
   }
 
   return (
-    <div className="bg-surface-light border border-dark-700 rounded-xl p-6">
+    <div className="bg-gray-100 border border-gray-300 rounded-xl p-6">
       {/* Game Time Header */}
       <div className="text-center mb-6">
         <p className="text-gray-400 text-sm mb-1">
@@ -259,39 +227,7 @@ interface TeamCardProps {
 
 function TeamCard({ team, isSelected, isDisabled, onClick, showDisabledReason }: TeamCardProps) {
   const getTeamHelmetImage = (alias: string) => {
-    const helmetMap: Record<string, string> = {
-      'ARI': '/helmets/H_ArizonaCardinals1.jpg',
-      'ATL': '/helmets/H_Atlanta1.jpg',
-      'BAL': '/helmets/H_BaltimoreRavens1.jpg',
-      'CIN': '/helmets/H_Begnals1.jpg',
-      'BUF': '/helmets/H_Buffulo1.jpg',
-      'CAR': '/helmets/H_CarolinaPanthers1.jpg',
-      'CHI': '/helmets/H_ChicagoBears1.jpg',
-      'DAL': '/helmets/H_DallasCowboys1.jpg',
-      'DEN': '/helmets/H_Denver1.jpg',
-      'DET': '/helmets/H_DetriotLions1.jpg',
-      'HOU': '/helmets/H_HoustonTexans1.jpg',
-      'IND': '/helmets/H_IndianapolisColts1.jpg',
-      'JAX': '/helmets/H_Jax1.jpg',
-      'NYJ': '/helmets/H_Jets1.jpg',
-      'KC': '/helmets/H_KansasCity1.jpg',
-      'LAR': '/helmets/H_LARams1.jpg',
-      'LAC': '/helmets/H_LosAngelesChargers1.jpg',
-      'MIA': '/helmets/H_Miami5.jpg',
-      'MIN': '/helmets/H_MinnesotaVikings1.jpg',
-      'NE': '/helmets/H_NewEngland1.jpg',
-      'NO': '/helmets/H_NewOrleansSaints1.jpg',
-      'NYG': '/helmets/H_NewYorkGiants1.jpg',
-      'LV': '/helmets/H_Oakland1.jpg',
-      'PHI': '/helmets/H_Philadelphia1.jpg',
-      'PIT': '/helmets/H_Pittsburgh1.jpg',
-      'SEA': '/helmets/H_Seattle1.jpg',
-      'SF': '/helmets/H_SF1.jpg',
-      'TB': '/helmets/H_Tampa1.jpg',
-      'TEN': '/helmets/H_TennesseeTitans1.jpg',
-      'WAS': '/helmets/H_WashingtonRedSkins1.jpg'
-    }
-    return helmetMap[alias] || `/helmets/H_${alias}1.jpg`
+    return `/darklogo/${alias}.gif`
   }
   const getTeamCardClass = () => {
     if (isDisabled) {
@@ -346,8 +282,8 @@ function TeamCard({ team, isSelected, isDisabled, onClick, showDisabledReason }:
 
         {/* Team Info */}
         <div className="flex-1">
-          <h3 className="font-semibold text-white">{team.name}</h3>
-          <p className="text-sm text-gray-400">{team.market}</p>
+          <h3 className="font-semibold text-black">{team.name}</h3>
+          <p className="text-sm text-gray-600">{team.market}</p>
         </div>
       </div>
 
