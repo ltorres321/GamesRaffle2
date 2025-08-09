@@ -5,7 +5,7 @@ export default async function handler(req, res) {
     // Later this can proxy to the actual backend
     res.status(200).json({ 
       status: 'healthy', 
-      message: 'Survivor Sports API is running',
+      message: 'Games Raffle API is running',
       timestamp: new Date().toISOString() 
     });
   } catch (error) {

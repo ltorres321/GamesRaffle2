@@ -1,6 +1,6 @@
-# Survivor Sports Betting App - Cost-Effective Deployment Guide
+# Games Raffle App - Cost-Effective Deployment Guide
 
-This guide walks through deploying the Survivor Sports Betting application using **Azure Static Web Apps** instead of expensive Redis infrastructure, reducing operational costs significantly.
+This guide walks through deploying the Games Raffle application using **Azure Static Web Apps** instead of expensive Redis infrastructure, reducing operational costs significantly.
 
 ## 🎯 **Cost Optimization Summary**
 
@@ -251,4 +251,4 @@ curl https://your-app.azurestaticapps.net/api/games/current-week
 3. **Spot Instances**: For development/testing environments
 4. **Auto-scaling**: Configure to scale down during low usage
 
-This deployment approach provides a production-ready, cost-effective solution for the Survivor Sports Betting application while maintaining all core functionality.
+This deployment approach provides a production-ready, cost-effective solution for the Games Raffle application while maintaining all core functionality.

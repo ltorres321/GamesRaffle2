@@ -1,6 +1,6 @@
 # Azure Infrastructure Deployment Guide
 
-This guide provides step-by-step instructions for deploying the Survivor Sports Betting App infrastructure to Azure.
+This guide provides step-by-step instructions for deploying the Games Raffle App infrastructure to Azure.
 
 ## Prerequisites
 

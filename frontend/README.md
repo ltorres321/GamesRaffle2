@@ -1,6 +1,6 @@
-# Survivor Sports Frontend
+# Games Raffle Frontend
 
-A Next.js-based frontend for the NFL Survivor Sports betting application with vendor prizes, replicating the SplashSports interface with a Green/Black/Gold theme.
+A Next.js-based frontend for the NFL Games Raffle betting application with vendor prizes, replicating the SplashSports interface with a Green/Black/Gold theme.
 
 ## 🎯 **Features Implemented**
 

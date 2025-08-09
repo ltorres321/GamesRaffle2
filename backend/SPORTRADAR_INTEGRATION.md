@@ -1,6 +1,6 @@
 # SportRadar NFL API Integration
 
-This document explains the SportRadar API integration implemented for the Survivor Sports Betting application.
+This document explains the SportRadar API integration implemented for the Games Raffle application.
 
 ## Overview
 
@@ -331,4 +331,4 @@ POST /api/games/update-scores
 POST /api/games/jobs/trigger/scoreCheck
 ```
 
-This integration provides a robust, production-ready solution for NFL data management in the Survivor Sports Betting application.
+This integration provides a robust, production-ready solution for NFL data management in the Games Raffle application.

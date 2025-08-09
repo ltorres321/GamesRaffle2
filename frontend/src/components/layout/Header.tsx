@@ -24,9 +24,9 @@ export default function Header() {
           <div className="flex items-center">
             <Link href="/" className="flex items-center space-x-2">
               <div className="w-8 h-8 bg-gradient-primary rounded-full flex items-center justify-center">
-                <span className="text-white font-bold text-sm">S</span>
+                <span className="text-white font-bold text-sm">GR</span>
               </div>
-              <span className="text-white font-bold text-xl">Survivor Sports</span>
+              <span className="text-white font-bold text-xl">Games Raffle</span>
             </Link>
           </div>
 

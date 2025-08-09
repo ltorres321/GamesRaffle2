@@ -1,6 +1,6 @@
-# Survivor Sports Betting API - Backend
+# Games Raffle API - Backend
 
-This is the Node.js/Express backend API for the Survivor Sports Betting application.
+This is the Node.js/Express backend API for the Games Raffle application.
 
 ## Project Structure
 

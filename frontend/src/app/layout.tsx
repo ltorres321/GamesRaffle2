@@ -6,9 +6,9 @@ import { Toaster } from 'react-hot-toast'
 const inter = Inter({ subsets: ['latin'] })
 
 export const metadata: Metadata = {
-  title: 'Survivor Sports - Win Big Prizes',
-  description: 'The ultimate NFL survivor contest platform with amazing prizes from top vendors',
-  keywords: 'NFL, survivor, contest, sports betting, prizes, cars, vacations',
+  title: 'Games Raffle - Win Big Prizes',
+    description: 'The ultimate NFL survivor contest platform with amazing prizes from top vendors',
+  keywords: 'NFL, survivor, contest, sports betting, prizes, cars, vacations, games raffle',
 }
 
 export default function RootLayout({
