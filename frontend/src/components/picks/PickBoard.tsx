@@ -35,6 +35,42 @@ export default function PickBoard({
     return existingPicks.some(pick => pick.teamId === teamId)
   }
 
+  const getTeamHelmetImage = (alias: string) => {
+    const helmetMap: Record<string, string> = {
+      'ARI': '/src/Assets/Helmets-H/H_ArizonaCardinals1.jpg',
+      'ATL': '/src/Assets/Helmets-H/H_Atlanta1.jpg',
+      'BAL': '/src/Assets/Helmets-H/H_BaltimoreRavens1.jpg',
+      'CIN': '/src/Assets/Helmets-H/H_Begnals1.jpg',
+      'BUF': '/src/Assets/Helmets-H/H_Buffulo1.jpg',
+      'CAR': '/src/Assets/Helmets-H/H_CarolinaPanthers1.jpg',
+      'CHI': '/src/Assets/Helmets-H/H_ChicagoBears1.jpg',
+      'DAL': '/src/Assets/Helmets-H/H_DallasCowboys1.jpg',
+      'DEN': '/src/Assets/Helmets-H/H_Denver1.jpg',
+      'DET': '/src/Assets/Helmets-H/H_DetriotLions1.jpg',
+      'HOU': '/src/Assets/Helmets-H/H_HoustonTexans1.jpg',
+      'IND': '/src/Assets/Helmets-H/H_IndianapolisColts1.jpg',
+      'JAX': '/src/Assets/Helmets-H/H_Jax1.jpg',
+      'NYJ': '/src/Assets/Helmets-H/H_Jets1.jpg',
+      'KC': '/src/Assets/Helmets-H/H_KansasCity1.jpg',
+      'LAR': '/src/Assets/Helmets-H/H_LARams1.jpg',
+      'LAC': '/src/Assets/Helmets-H/H_LosAngelesChargers1.jpg',
+      'MIA': '/src/Assets/Helmets-H/H_Miami5.jpg',
+      'MIN': '/src/Assets/Helmets-H/H_MinnesotaVikings1.jpg',
+      'NE': '/src/Assets/Helmets-H/H_NewEngland1.jpg',
+      'NO': '/src/Assets/Helmets-H/H_NewOrleansSaints1.jpg',
+      'NYG': '/src/Assets/Helmets-H/H_NewYorkGiants1.jpg',
+      'LV': '/src/Assets/Helmets-H/H_Oakland1.jpg',
+      'PHI': '/src/Assets/Helmets-H/H_Philadelphia1.jpg',
+      'PIT': '/src/Assets/Helmets-H/H_Pittsburgh1.jpg',
+      'SEA': '/src/Assets/Helmets-H/H_Seattle1.jpg',
+      'SF': '/src/Assets/Helmets-H/H_SF1.jpg',
+      'TB': '/src/Assets/Helmets-H/H_Tampa1.jpg',
+      'TEN': '/src/Assets/Helmets-H/H_TennesseeTitans1.jpg',
+      'WAS': '/src/Assets/Helmets-H/H_WashingtonRedSkins1.jpg'
+    }
+    return helmetMap[alias] || `/src/Assets/Helmets-H/H_${alias}1.jpg`
+  }
+
   const getTeamLogo = (team: Team) => {
     // In a real app, this would return actual team logos
     // For now, using team abbreviation with team colors
@@ -222,6 +258,41 @@ interface TeamCardProps {
 }
 
 function TeamCard({ team, isSelected, isDisabled, onClick, showDisabledReason }: TeamCardProps) {
+  const getTeamHelmetImage = (alias: string) => {
+    const helmetMap: Record<string, string> = {
+      'ARI': '/src/Assets/Helmets-H/H_ArizonaCardinals1.jpg',
+      'ATL': '/src/Assets/Helmets-H/H_Atlanta1.jpg',
+      'BAL': '/src/Assets/Helmets-H/H_BaltimoreRavens1.jpg',
+      'CIN': '/src/Assets/Helmets-H/H_Begnals1.jpg',
+      'BUF': '/src/Assets/Helmets-H/H_Buffulo1.jpg',
+      'CAR': '/src/Assets/Helmets-H/H_CarolinaPanthers1.jpg',
+      'CHI': '/src/Assets/Helmets-H/H_ChicagoBears1.jpg',
+      'DAL': '/src/Assets/Helmets-H/H_DallasCowboys1.jpg',
+      'DEN': '/src/Assets/Helmets-H/H_Denver1.jpg',
+      'DET': '/src/Assets/Helmets-H/H_DetriotLions1.jpg',
+      'HOU': '/src/Assets/Helmets-H/H_HoustonTexans1.jpg',
+      'IND': '/src/Assets/Helmets-H/H_IndianapolisColts1.jpg',
+      'JAX': '/src/Assets/Helmets-H/H_Jax1.jpg',
+      'NYJ': '/src/Assets/Helmets-H/H_Jets1.jpg',
+      'KC': '/src/Assets/Helmets-H/H_KansasCity1.jpg',
+      'LAR': '/src/Assets/Helmets-H/H_LARams1.jpg',
+      'LAC': '/src/Assets/Helmets-H/H_LosAngelesChargers1.jpg',
+      'MIA': '/src/Assets/Helmets-H/H_Miami5.jpg',
+      'MIN': '/src/Assets/Helmets-H/H_MinnesotaVikings1.jpg',
+      'NE': '/src/Assets/Helmets-H/H_NewEngland1.jpg',
+      'NO': '/src/Assets/Helmets-H/H_NewOrleansSaints1.jpg',
+      'NYG': '/src/Assets/Helmets-H/H_NewYorkGiants1.jpg',
+      'LV': '/src/Assets/Helmets-H/H_Oakland1.jpg',
+      'PHI': '/src/Assets/Helmets-H/H_Philadelphia1.jpg',
+      'PIT': '/src/Assets/Helmets-H/H_Pittsburgh1.jpg',
+      'SEA': '/src/Assets/Helmets-H/H_Seattle1.jpg',
+      'SF': '/src/Assets/Helmets-H/H_SF1.jpg',
+      'TB': '/src/Assets/Helmets-H/H_Tampa1.jpg',
+      'TEN': '/src/Assets/Helmets-H/H_TennesseeTitans1.jpg',
+      'WAS': '/src/Assets/Helmets-H/H_WashingtonRedSkins1.jpg'
+    }
+    return helmetMap[alias] || `/src/Assets/Helmets-H/H_${alias}1.jpg`
+  }
   const getTeamCardClass = () => {
     if (isDisabled) {
       return 'team-card-disabled'
@@ -253,15 +324,24 @@ function TeamCard({ team, isSelected, isDisabled, onClick, showDisabledReason }:
           )}
         </div>
 
-        {/* Team Logo/Colors */}
-        <div 
-          className="w-12 h-12 rounded-lg flex items-center justify-center text-white font-bold text-sm"
-          style={{ 
-            backgroundColor: team.primaryColor,
-            border: `2px solid ${team.secondaryColor}`
-          }}
-        >
-          {team.alias}
+        {/* Team Helmet */}
+        <div className="w-12 h-12 rounded-lg flex items-center justify-center overflow-hidden">
+          <img
+            src={getTeamHelmetImage(team.alias)}
+            alt={`${team.fullName} helmet`}
+            className="w-10 h-10 object-contain"
+            onError={(e) => {
+              // Fallback to team colors if helmet image fails to load
+              const target = e.target as HTMLImageElement;
+              target.style.display = 'none';
+              const parent = target.parentElement;
+              if (parent) {
+                parent.style.backgroundColor = team.primaryColor;
+                parent.style.border = `2px solid ${team.secondaryColor}`;
+                parent.innerHTML = `<span class="text-white font-bold text-sm">${team.alias}</span>`;
+              }
+            }}
+          />
         </div>
 
         {/* Team Info */}
