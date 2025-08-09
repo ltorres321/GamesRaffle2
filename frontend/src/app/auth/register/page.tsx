@@ -295,10 +295,15 @@ export default function RegisterPage() {
                     value={formData.phoneNumber}
                     onChange={handleInputChange}
                     placeholder="+1234567890"
-                    className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-green-600 !text-gray-900 !bg-white placeholder-gray-400 ${
+                    className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-green-600 ${
                       errors.phoneNumber ? 'border-red-300' : 'border-gray-300'
                     }`}
-                    style={{ color: '#111827', backgroundColor: '#ffffff' }}
+                    style={{
+                      color: '#000000 !important',
+                      backgroundColor: '#ffffff !important',
+                      WebkitTextFillColor: '#000000',
+                      opacity: '1'
+                    }}
                   />
                   {errors.phoneNumber && <p className="text-red-600 text-xs mt-1">{errors.phoneNumber}</p>}
                   <p className="text-xs text-gray-500 mt-1">Required for SMS verification</p>
@@ -311,10 +316,15 @@ export default function RegisterPage() {
                     name="streetAddress"
                     value={formData.streetAddress}
                     onChange={handleInputChange}
-                    className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-green-600 !text-gray-900 !bg-white placeholder-gray-400 ${
+                    className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-green-600 ${
                       errors.streetAddress ? 'border-red-300' : 'border-gray-300'
                     }`}
-                    style={{ color: '#111827', backgroundColor: '#ffffff' }}
+                    style={{
+                      color: '#000000 !important',
+                      backgroundColor: '#ffffff !important',
+                      WebkitTextFillColor: '#000000',
+                      opacity: '1'
+                    }}
                   />
                   {errors.streetAddress && <p className="text-red-600 text-xs mt-1">{errors.streetAddress}</p>}
                 </div>
@@ -327,10 +337,15 @@ export default function RegisterPage() {
                       name="city"
                       value={formData.city}
                       onChange={handleInputChange}
-                      className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-green-600 !text-gray-900 !bg-white placeholder-gray-400 ${
+                      className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-green-600 ${
                         errors.city ? 'border-red-300' : 'border-gray-300'
                       }`}
-                      style={{ color: '#111827', backgroundColor: '#ffffff' }}
+                      style={{
+                        color: '#000000 !important',
+                        backgroundColor: '#ffffff !important',
+                        WebkitTextFillColor: '#000000',
+                        opacity: '1'
+                      }}
                     />
                     {errors.city && <p className="text-red-600 text-xs mt-1">{errors.city}</p>}
                   </div>
@@ -410,10 +425,15 @@ export default function RegisterPage() {
                       name="zipCode"
                       value={formData.zipCode}
                       onChange={handleInputChange}
-                      className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-green-600 !text-gray-900 !bg-white placeholder-gray-400 ${
+                      className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-green-600 ${
                         errors.zipCode ? 'border-red-300' : 'border-gray-300'
                       }`}
-                      style={{ color: '#111827', backgroundColor: '#ffffff' }}
+                      style={{
+                        color: '#000000 !important',
+                        backgroundColor: '#ffffff !important',
+                        WebkitTextFillColor: '#000000',
+                        opacity: '1'
+                      }}
                     />
                     {errors.zipCode && <p className="text-red-600 text-xs mt-1">{errors.zipCode}</p>}
                   </div>
