@@ -41,6 +41,15 @@ export default function RegisterPage() {
   const [isLoading, setIsLoading] = useState(false)
   const [step, setStep] = useState(1) // Multi-step form
 
+  // Common input style to force visibility
+  const inputStyle = {
+    color: '#000000',
+    backgroundColor: '#ffffff',
+    WebkitTextFillColor: '#000000',
+    opacity: 1,
+    caretColor: '#000000'
+  }
+
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value } = e.target
     setFormData(prev => ({ ...prev, [name]: value }))
@@ -154,7 +163,7 @@ export default function RegisterPage() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-900 via-green-900 to-gray-900 flex items-center justify-center px-4 py-12">
       <div className="max-w-md w-full">
-        <div className="bg-white rounded-2xl shadow-2xl p-8 registration-form">
+        <div className="bg-white rounded-2xl shadow-2xl p-8">
           <div className="text-center mb-8">
             <h1 className="text-3xl font-bold text-gray-900">Join Games Raffle</h1>
             <p className="text-gray-600 mt-2">Step {step} of 3</p>
@@ -204,6 +213,7 @@ export default function RegisterPage() {
                       name="firstName"
                       value={formData.firstName}
                       onChange={handleInputChange}
+                      style={inputStyle}
                       className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-green-600 ${
                         errors.firstName ? 'border-red-300' : 'border-gray-300'
                       }`}
@@ -220,6 +230,7 @@ export default function RegisterPage() {
                       name="lastName"
                       value={formData.lastName}
                       onChange={handleInputChange}
+                      style={inputStyle}
                       className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-green-600 ${
                         errors.lastName ? 'border-red-300' : 'border-gray-300'
                       }`}
@@ -235,6 +246,7 @@ export default function RegisterPage() {
                     name="email"
                     value={formData.email}
                     onChange={handleInputChange}
+                    style={inputStyle}
                     className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-green-600 ${
                       errors.email ? 'border-red-300' : 'border-gray-300'
                     }`}
@@ -249,6 +261,7 @@ export default function RegisterPage() {
                     name="username"
                     value={formData.username}
                     onChange={handleInputChange}
+                    style={inputStyle}
                     className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-green-600 ${
                       errors.username ? 'border-red-300' : 'border-gray-300'
                     }`}
@@ -263,7 +276,8 @@ export default function RegisterPage() {
                     name="dateOfBirth"
                     value={formData.dateOfBirth}
                     onChange={handleInputChange}
-                    className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-green-600 bg-white ${
+                    style={{...inputStyle, colorScheme: 'light'}}
+                    className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-green-600 ${
                       errors.dateOfBirth ? 'border-red-300' : 'border-gray-300'
                     }`}
                   />
@@ -294,6 +308,7 @@ export default function RegisterPage() {
                     value={formData.phoneNumber}
                     onChange={handleInputChange}
                     placeholder="+1234567890"
+                    style={inputStyle}
                     className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-green-600 ${
                       errors.phoneNumber ? 'border-red-300' : 'border-gray-300'
                     }`}
@@ -309,6 +324,7 @@ export default function RegisterPage() {
                     name="streetAddress"
                     value={formData.streetAddress}
                     onChange={handleInputChange}
+                    style={inputStyle}
                     className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-green-600 ${
                       errors.streetAddress ? 'border-red-300' : 'border-gray-300'
                     }`}
@@ -324,6 +340,7 @@ export default function RegisterPage() {
                       name="city"
                       value={formData.city}
                       onChange={handleInputChange}
+                      style={inputStyle}
                       className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-green-600 ${
                         errors.city ? 'border-red-300' : 'border-gray-300'
                       }`}
@@ -337,6 +354,7 @@ export default function RegisterPage() {
                       name="state"
                       value={formData.state}
                       onChange={handleInputChange}
+                      style={inputStyle}
                       className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-green-600 ${
                         errors.state ? 'border-red-300' : 'border-gray-300'
                       }`}
@@ -405,6 +423,7 @@ export default function RegisterPage() {
                       name="zipCode"
                       value={formData.zipCode}
                       onChange={handleInputChange}
+                      style={inputStyle}
                       className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-green-600 ${
                         errors.zipCode ? 'border-red-300' : 'border-gray-300'
                       }`}
@@ -418,6 +437,7 @@ export default function RegisterPage() {
                       name="country"
                       value={formData.country}
                       onChange={handleInputChange}
+                      style={inputStyle}
                       className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-600"
                     >
                       <option value="United States">United States</option>
@@ -456,6 +476,7 @@ export default function RegisterPage() {
                     name="password"
                     value={formData.password}
                     onChange={handleInputChange}
+                    style={inputStyle}
                     className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-green-600 ${
                       errors.password ? 'border-red-300' : 'border-gray-300'
                     }`}
@@ -471,6 +492,7 @@ export default function RegisterPage() {
                     name="confirmPassword"
                     value={formData.confirmPassword}
                     onChange={handleInputChange}
+                    style={inputStyle}
                     className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-green-600 ${
                       errors.confirmPassword ? 'border-red-300' : 'border-gray-300'
                     }`}
