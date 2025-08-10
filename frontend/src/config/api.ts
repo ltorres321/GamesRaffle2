@@ -1,7 +1,7 @@
 // API Configuration
 const API_CONFIG = {
   // Backend API URL - GitHub Codespaces URL
-  BASE_URL: process.env.NEXT_PUBLIC_API_URL || 'https://jubilant-capybara-97954qwv6p9hwgj.github.dev:8000',
+  BASE_URL: process.env.NEXT_PUBLIC_API_URL || 'https://jubilant-capybara-97954qwv6p9hwgj-8000.app.github.dev',
   
   // API endpoints
   ENDPOINTS: {
