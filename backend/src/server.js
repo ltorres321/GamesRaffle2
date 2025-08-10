@@ -136,6 +136,9 @@ app.get('/health', async (req, res) => {
   }
 });
 
+// Handle favicon requests to avoid 404 errors in browser
+app.get('/favicon.ico', (req, res) => res.status(204).end());
+
 // API routes
 app.use('/api/auth', authRoutes);
 app.use('/api/users', userRoutes);
