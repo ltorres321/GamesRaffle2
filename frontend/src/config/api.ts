@@ -1,7 +1,7 @@
 // API Configuration
 const API_CONFIG = {
   // Backend API URL - Uses environment variable or defaults to localhost
-  BASE_URL: process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000',
+  BASE_URL: 'https://jubilant-capybara-97954qwv6p9hwgj-8000.app.github.dev',
   
   // API endpoints
   ENDPOINTS: {
