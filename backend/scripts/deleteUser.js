@@ -20,6 +20,11 @@ async function deleteUser(email) {
   }
 
   try {
+    // Initialize database connection first
+    console.log('🔌 Connecting to database...');
+    await database.initialize();
+    console.log('✅ Database connected successfully');
+
     console.log(`🔍 Looking for user with email: ${email}`);
     
     // Check if user exists
