@@ -11,7 +11,7 @@ const logger = require('./utils/logger');
 const database = require('./config/database');
 const memoryCache = require('./config/memoryCache');
 const scheduledJobService = require('./services/scheduledJobService');
-const errorHandler = require('./middleware/errorHandler');
+const { errorHandler } = require('./middleware/errorHandler');
 const notFound = require('./middleware/notFound');
 
 // Import routes
