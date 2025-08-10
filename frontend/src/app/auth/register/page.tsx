@@ -3,6 +3,7 @@
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
+import apiService from '@/services/api'
 
 interface RegistrationData {
   username: string
@@ -132,26 +133,18 @@ export default function RegisterPage() {
     setErrors({})
 
     try {
-      const response = await fetch('/api/auth/register', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(formData),
-      })
+      const response = await apiService.register(formData)
 
-      const data = await response.json()
-
-      if (data.success) {
+      if (response.success && response.data) {
         // Store tokens
-        localStorage.setItem('accessToken', data.data.tokens.accessToken)
-        localStorage.setItem('refreshToken', data.data.tokens.refreshToken)
-        localStorage.setItem('sessionId', data.data.tokens.sessionId)
+        localStorage.setItem('accessToken', response.data.tokens.accessToken)
+        localStorage.setItem('refreshToken', response.data.tokens.refreshToken)
+        localStorage.setItem('sessionId', response.data.tokens.sessionId)
         
         // Redirect to verification page
         router.push('/auth/verify')
       } else {
-        setErrors({ general: data.message || 'Registration failed' })
+        setErrors({ general: response.message || 'Registration failed' })
       }
     } catch (error) {
       setErrors({ general: 'Network error. Please try again.' })

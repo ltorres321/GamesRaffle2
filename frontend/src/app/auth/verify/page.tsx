@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
+import apiService from '@/services/api'
 
 export default function VerifyPage() {
   const router = useRouter()
@@ -46,16 +47,9 @@ export default function VerifyPage() {
 
   const fetchUserInfo = async () => {
     try {
-      const token = localStorage.getItem('accessToken')
-      const response = await fetch('/api/auth/me', {
-        headers: {
-          'Authorization': `Bearer ${token}`
-        }
-      })
-
-      if (response.ok) {
-        const data = await response.json()
-        setUserInfo(data.data.user)
+      const response = await apiService.getMe()
+      if (response.success && response.data) {
+        setUserInfo(response.data.user)
       }
     } catch (error) {
       console.error('Failed to fetch user info:', error)
@@ -72,22 +66,14 @@ export default function VerifyPage() {
     setErrors(prev => ({ ...prev, email: '' }))
 
     try {
-      const response = await fetch('/api/auth/verify-email', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ token: emailCode }),
-      })
+      const response = await apiService.verifyEmail(emailCode)
 
-      const data = await response.json()
-
-      if (data.success) {
+      if (response.success) {
         setSuccess(prev => ({ ...prev, email: 'Email verified successfully!' }))
         setEmailCode('')
         await fetchUserInfo() // Refresh user info
       } else {
-        setErrors(prev => ({ ...prev, email: data.message || 'Invalid verification code' }))
+        setErrors(prev => ({ ...prev, email: response.message || 'Invalid verification code' }))
       }
     } catch (error) {
       setErrors(prev => ({ ...prev, email: 'Network error. Please try again.' }))
@@ -106,29 +92,21 @@ export default function VerifyPage() {
     setErrors(prev => ({ ...prev, sms: '' }))
 
     try {
-      const response = await fetch('/api/auth/verify-phone', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ code: smsCode }),
-      })
+      const response = await apiService.verifyPhone(smsCode)
 
-      const data = await response.json()
-
-      if (data.success) {
+      if (response.success) {
         setSuccess(prev => ({ ...prev, sms: 'Phone verified successfully!' }))
         setSmsCode('')
         await fetchUserInfo() // Refresh user info
         
-        if (data.data?.fullyVerified) {
+        if (response.data?.fullyVerified) {
           // User is fully verified, redirect to home
           setTimeout(() => {
             router.push('/')
           }, 2000)
         }
       } else {
-        setErrors(prev => ({ ...prev, sms: data.message || 'Invalid verification code' }))
+        setErrors(prev => ({ ...prev, sms: response.message || 'Invalid verification code' }))
       }
     } catch (error) {
       setErrors(prev => ({ ...prev, sms: 'Network error. Please try again.' }))
@@ -141,21 +119,13 @@ export default function VerifyPage() {
     setIsLoading(prev => ({ ...prev, resendEmail: true }))
 
     try {
-      const token = localStorage.getItem('accessToken')
-      const response = await fetch('/api/auth/resend-email-verification', {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${token}`
-        }
-      })
+      const response = await apiService.resendEmailVerification()
 
-      const data = await response.json()
-
-      if (data.success) {
+      if (response.success) {
         setSuccess(prev => ({ ...prev, resendEmail: 'Verification email sent!' }))
         setResendCooldown(prev => ({ ...prev, email: 60 })) // 60 second cooldown
       } else {
-        setErrors(prev => ({ ...prev, resendEmail: data.message || 'Failed to send email' }))
+        setErrors(prev => ({ ...prev, resendEmail: response.message || 'Failed to send email' }))
       }
     } catch (error) {
       setErrors(prev => ({ ...prev, resendEmail: 'Network error. Please try again.' }))
@@ -168,21 +138,13 @@ export default function VerifyPage() {
     setIsLoading(prev => ({ ...prev, resendSMS: true }))
 
     try {
-      const token = localStorage.getItem('accessToken')
-      const response = await fetch('/api/auth/resend-sms-verification', {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${token}`
-        }
-      })
+      const response = await apiService.resendSmsVerification()
 
-      const data = await response.json()
-
-      if (data.success) {
+      if (response.success) {
         setSuccess(prev => ({ ...prev, resendSMS: 'Verification code sent!' }))
         setResendCooldown(prev => ({ ...prev, sms: 60 })) // 60 second cooldown
       } else {
-        setErrors(prev => ({ ...prev, resendSMS: data.message || 'Failed to send SMS' }))
+        setErrors(prev => ({ ...prev, resendSMS: response.message || 'Failed to send SMS' }))
       }
     } catch (error) {
       setErrors(prev => ({ ...prev, resendSMS: 'Network error. Please try again.' }))
