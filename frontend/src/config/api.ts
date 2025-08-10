@@ -2,7 +2,12 @@
 function getBackendURL(): string {
   // For production (deployed to Azure Static Web Apps)
   if (process.env.NODE_ENV === 'production') {
-    return process.env.NEXT_PUBLIC_API_URL || 'https://your-production-api.azurewebsites.net';
+    return process.env.NEXT_PUBLIC_API_URL || 'https://red-hill-05463560f.1.azurestaticapps.net';
+  }
+
+  // Option to use Azure Static Web Apps URL as backend (if you deploy backend there)
+  if (process.env.NEXT_PUBLIC_USE_AZURE_BACKEND === 'true') {
+    return 'https://red-hill-05463560f.1.azurestaticapps.net';
   }
 
   // For GitHub Codespaces - Auto-detect the URL
