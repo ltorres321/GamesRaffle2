@@ -4,6 +4,8 @@ const { v4: uuidv4 } = require('uuid');
 const database = require('../config/database');
 const { authService, authRateLimit, authenticate, optionalAuth } = require('../middleware/auth');
 const logger = require('../utils/logger');
+const emailService = require('../services/emailService');
+const smsService = require('../services/smsService');
 const {
   catchAsync,
   createValidationError,
@@ -130,15 +132,27 @@ router.post('/register', authRateLimit, catchAsync(async (req, res) => {
     emailVerificationToken, emailExpires, phoneVerificationCode, phoneExpires
   });
 
-  // TODO: Send email verification (would integrate with email service)
-  logger.logBusinessEvent('email_verification_sent', {
-    userId, email, token: emailVerificationToken
-  }, userId);
+  // Send email verification
+  try {
+    await emailService.sendVerificationEmail(email, emailVerificationToken, firstName);
+    logger.logBusinessEvent('email_verification_sent', {
+      userId, email, token: emailVerificationToken
+    }, userId);
+  } catch (error) {
+    logger.error('Failed to send verification email:', error);
+    // Continue registration even if email fails
+  }
 
-  // TODO: Send SMS verification (would integrate with SMS service like Twilio)
-  logger.logBusinessEvent('sms_verification_sent', {
-    userId, phoneNumber, code: phoneVerificationCode
-  }, userId);
+  // Send SMS verification
+  try {
+    await smsService.sendVerificationSMS(phoneNumber, phoneVerificationCode, firstName);
+    logger.logBusinessEvent('sms_verification_sent', {
+      userId, phoneNumber, code: phoneVerificationCode
+    }, userId);
+  } catch (error) {
+    logger.error('Failed to send verification SMS:', error);
+    // Continue registration even if SMS fails
+  }
 
   // Generate tokens (user can login but features are limited until verified)
   const { accessToken, refreshToken, refreshPayload } = authService.generateTokens(userId, email, 'Player');
@@ -607,10 +621,16 @@ router.post('/resend-email-verification', authenticate, catchAsync(async (req, r
     WHERE UserId = @userId
   `, { userId, token: emailVerificationToken, expires: emailExpires });
 
-  // TODO: Send email verification (would integrate with email service)
-  logger.logBusinessEvent('email_verification_resent', { 
-    userId, email: user.Email, token: emailVerificationToken 
-  }, userId);
+  // Send email verification
+  try {
+    await emailService.sendVerificationEmail(user.Email, emailVerificationToken, '');
+    logger.logBusinessEvent('email_verification_resent', {
+      userId, email: user.Email, token: emailVerificationToken
+    }, userId);
+  } catch (error) {
+    logger.error('Failed to resend verification email:', error);
+    // Continue even if email fails - user will see success message
+  }
 
   res.json({
     success: true,
@@ -650,10 +670,16 @@ router.post('/resend-sms-verification', authenticate, catchAsync(async (req, res
     WHERE UserId = @userId
   `, { userId, code: phoneVerificationCode, expires: phoneExpires });
 
-  // TODO: Send SMS verification (would integrate with SMS service like Twilio)
-  logger.logBusinessEvent('sms_verification_resent', { 
-    userId, phoneNumber: user.PhoneNumber, code: phoneVerificationCode 
-  }, userId);
+  // Send SMS verification
+  try {
+    await smsService.sendVerificationSMS(user.PhoneNumber, phoneVerificationCode, '');
+    logger.logBusinessEvent('sms_verification_resent', {
+      userId, phoneNumber: user.PhoneNumber, code: phoneVerificationCode
+    }, userId);
+  } catch (error) {
+    logger.error('Failed to resend verification SMS:', error);
+    // Continue even if SMS fails - user will see success message
+  }
 
   res.json({
     success: true,

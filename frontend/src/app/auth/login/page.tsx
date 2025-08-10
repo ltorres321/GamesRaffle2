@@ -64,10 +64,15 @@ export default function LoginPage() {
           router.push('/') // Redirect to home page
         }
       } else {
-        setErrors({ general: data.message || 'Login failed' })
+        // Handle different error types
+        if (response.status === 401 || data.message?.toLowerCase().includes('invalid') || data.message?.toLowerCase().includes('not found')) {
+          setErrors({ general: 'Username or password is incorrect' })
+        } else {
+          setErrors({ general: data.message || 'Login failed' })
+        }
       }
     } catch (error) {
-      setErrors({ general: 'Network error. Please try again.' })
+      setErrors({ general: 'Username or password is incorrect' })
     } finally {
       setIsLoading(false)
     }
@@ -98,7 +103,7 @@ export default function LoginPage() {
                 name="email"
                 value={formData.email}
                 onChange={handleInputChange}
-                className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-green-600 ${
+                className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-green-600 text-gray-900 bg-white ${
                   errors.email ? 'border-red-300' : 'border-gray-300'
                 }`}
                 placeholder="Enter your email"
@@ -115,7 +120,7 @@ export default function LoginPage() {
                 name="password"
                 value={formData.password}
                 onChange={handleInputChange}
-                className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-green-600 ${
+                className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-green-600 text-gray-900 bg-white ${
                   errors.password ? 'border-red-300' : 'border-gray-300'
                 }`}
                 placeholder="Enter your password"

@@ -275,7 +275,14 @@ const logAuditEvent = (action, resource, userId, details = {}) => {
 
 // Export logger with helper methods
 module.exports = {
-  ...logger,
+  // Core logging methods
+  error: (message, meta) => logger.error(message, meta),
+  warn: (message, meta) => logger.warn(message, meta),
+  info: (message, meta) => logger.info(message, meta),
+  http: (message, meta) => logger.http(message, meta),
+  debug: (message, meta) => logger.debug(message, meta),
+  
+  // Helper methods
   createLoggerWithContext,
   logRequest,
   logDatabaseQuery,

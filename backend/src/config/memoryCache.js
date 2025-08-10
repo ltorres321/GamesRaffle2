@@ -1,5 +1,3 @@
-const logger = require('../utils/logger');
-
 class MemoryCache {
   constructor() {
     this.cache = new Map();
@@ -7,19 +5,40 @@ class MemoryCache {
     this.rateLimits = new Map();
     this.locks = new Map();
     this.isConnected = true;
+    this.logger = null; // Will be set later to avoid circular dependency
     
     // Cleanup interval for expired items (every 5 minutes)
     this.cleanupInterval = setInterval(() => {
       this.cleanup();
     }, 5 * 60 * 1000);
     
-    logger.info('Memory cache initialized');
+    // Log initialization after logger is available
+    this.log('Memory cache initialized');
+  }
+
+  // Safe logging method
+  log(message, level = 'info') {
+    if (!this.logger) {
+      try {
+        this.logger = require('../utils/logger');
+      } catch (e) {
+        // Fallback to console if logger not available
+        console.log(`[${level.toUpperCase()}] ${message}`);
+        return;
+      }
+    }
+    
+    if (this.logger && typeof this.logger[level] === 'function') {
+      this.logger[level](message);
+    } else {
+      console.log(`[${level.toUpperCase()}] ${message}`);
+    }
   }
 
   async connect() {
     // Memory cache is always "connected"
     this.isConnected = true;
-    logger.info('Memory cache ready');
+    this.log('Memory cache ready');
     return Promise.resolve();
   }
 
@@ -245,7 +264,7 @@ class MemoryCache {
     }
     
     if (cleaned > 0) {
-      logger.debug(`Memory cache cleanup: removed ${cleaned} expired items`);
+      this.log(`Memory cache cleanup: removed ${cleaned} expired items`, 'debug');
     }
   }
 
@@ -274,7 +293,7 @@ class MemoryCache {
     this.locks.clear();
     this.isConnected = false;
     
-    logger.info('Memory cache shut down');
+    this.log('Memory cache shut down');
     return Promise.resolve();
   }
 

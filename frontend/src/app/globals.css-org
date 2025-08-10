@@ -150,22 +150,36 @@
   }
 }
 
-/* REMOVE ALL PREVIOUS INPUT OVERRIDES AND USE SIMPLE FIX */
-/* Force all inputs to be visible with maximum specificity */
-input, select, textarea {
+/* Force visible text in registration form inputs */
+input[type="text"],
+input[type="email"],
+input[type="tel"],
+input[type="date"],
+input[type="password"],
+select {
   color: #000000 !important;
   background-color: #ffffff !important;
   -webkit-text-fill-color: #000000 !important;
+  caret-color: #000000 !important;
   opacity: 1 !important;
 }
 
-input:focus, select:focus, textarea:focus {
+input[type="text"]:focus,
+input[type="email"]:focus,
+input[type="tel"]:focus,
+input[type="date"]:focus,
+input[type="password"]:focus,
+select:focus {
   color: #000000 !important;
   background-color: #ffffff !important;
   -webkit-text-fill-color: #000000 !important;
+  caret-color: #000000 !important;
 }
 
-input::placeholder {
-  color: #6b7280 !important;
-  opacity: 0.8 !important;
+input[type="text"]::placeholder,
+input[type="email"]::placeholder,
+input[type="tel"]::placeholder,
+input[type="password"]::placeholder {
+  color: #9ca3af !important;
+  opacity: 0.7 !important;
 }

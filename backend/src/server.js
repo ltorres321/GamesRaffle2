@@ -11,7 +11,7 @@ const logger = require('./utils/logger');
 const database = require('./config/database');
 const memoryCache = require('./config/memoryCache');
 const scheduledJobService = require('./services/scheduledJobService');
-const errorHandler = require('./middleware/errorHandler');
+const { errorHandler } = require('./middleware/errorHandler');
 const notFound = require('./middleware/notFound');
 
 // Import routes
@@ -135,6 +135,9 @@ app.get('/health', async (req, res) => {
     });
   }
 });
+
+// Handle favicon requests to avoid 404 errors in browser
+app.get('/favicon.ico', (req, res) => res.status(204).end());
 
 // API routes
 app.use('/api/auth', authRoutes);

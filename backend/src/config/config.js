@@ -1,4 +1,7 @@
-require('dotenv').config();
+// Load environment variables from multiple files
+// Load .env.local first (highest priority), then .env (fallback)
+require('dotenv').config({ path: '.env.local', override: true });
+require('dotenv').config(); // Fallback to .env for missing variables
 
 const config = {
   app: {
@@ -158,17 +161,32 @@ const config = {
   
   email: {
     enabled: process.env.EMAIL_ENABLED === 'true',
-    provider: process.env.EMAIL_PROVIDER || 'sendgrid',
+    provider: process.env.EMAIL_PROVIDER || 'gmail',
+    gmail: {
+      user: process.env.GMAIL_USER,
+      appPassword: process.env.GMAIL_APP_PASSWORD
+    },
     sendgrid: {
       apiKey: process.env.SENDGRID_API_KEY,
-      fromEmail: process.env.FROM_EMAIL || 'noreply@survivorsports.com',
-      fromName: process.env.FROM_NAME || 'Survivor Sports'
+      fromEmail: process.env.FROM_EMAIL || 'noreply@gamesraffle.com',
+      fromName: process.env.FROM_NAME || 'Games Raffle'
     },
     templates: {
       welcome: process.env.WELCOME_TEMPLATE_ID,
       verification: process.env.VERIFICATION_TEMPLATE_ID,
       gameResult: process.env.GAME_RESULT_TEMPLATE_ID,
       elimination: process.env.ELIMINATION_TEMPLATE_ID
+    }
+  },
+
+  sms: {
+    enabled: process.env.SMS_ENABLED === 'true',
+    provider: process.env.SMS_PROVIDER || 'twilio',
+    twilio: {
+      accountSid: process.env.TWILIO_ACCOUNT_SID,
+      authToken: process.env.TWILIO_AUTH_TOKEN,
+      phoneNumber: process.env.TWILIO_PHONE_NUMBER,
+      testPhone: process.env.TWILIO_TEST_PHONE
     }
   },
   
