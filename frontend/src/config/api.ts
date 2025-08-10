@@ -1,7 +1,50 @@
+// Auto-detect the correct backend URL based on environment
+function getBackendURL(): string {
+  // For production (deployed to Azure Static Web Apps)
+  if (process.env.NODE_ENV === 'production') {
+    return process.env.NEXT_PUBLIC_API_URL || 'https://your-production-api.azurewebsites.net';
+  }
+
+  // For GitHub Codespaces - Auto-detect the URL
+  if (typeof window !== 'undefined') {
+    const hostname = window.location.hostname;
+    
+    // Check if we're in a GitHub Codespace (hostname contains app.github.dev)
+    if (hostname.includes('app.github.dev')) {
+      // Extract the codespace name from the current URL
+      // Format: https://codespace-name-port.app.github.dev
+      const parts = hostname.split('-');
+      if (parts.length >= 3) {
+        // Remove the last part (port number) and reconstruct for port 8000
+        const codespaceName = parts.slice(0, -1).join('-');
+        return `https://${codespaceName}-8000.app.github.dev`;
+      }
+    }
+    
+    // Check if we're accessing via a forwarded port URL
+    if (hostname.includes('github.dev')) {
+      // Try to construct the backend URL by replacing the port
+      const currentUrl = window.location.origin;
+      // If current is on port 3000, backend should be on 8000
+      if (currentUrl.includes('-3000.')) {
+        return currentUrl.replace('-3000.', '-8000.');
+      }
+    }
+  }
+
+  // For server-side rendering or initial load, check environment variables
+  if (process.env.CODESPACE_NAME) {
+    return `https://${process.env.CODESPACE_NAME}-8000.app.github.dev`;
+  }
+
+  // Fallback to localhost for local development
+  return process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
+}
+
 // API Configuration
 const API_CONFIG = {
-  // Backend API URL - Uses environment variable or defaults to localhost
-  BASE_URL: 'https://jubilant-capybara-97954qwv6p9hwgj-8000.app.github.dev',
+  // Backend API URL - Auto-detects based on environment
+  BASE_URL: getBackendURL(),
   
   // API endpoints
   ENDPOINTS: {
@@ -32,6 +75,16 @@ const API_CONFIG = {
       HISTORY: '/api/picks/history'
     }
   }
+}
+
+// Debug logging in development
+if (process.env.NODE_ENV === 'development') {
+  console.log('🔧 API Configuration:', {
+    BASE_URL: API_CONFIG.BASE_URL,
+    NODE_ENV: process.env.NODE_ENV,
+    CODESPACE_NAME: process.env.CODESPACE_NAME,
+    currentHostname: typeof window !== 'undefined' ? window.location.hostname : 'server-side'
+  });
 }
 
 export default API_CONFIG

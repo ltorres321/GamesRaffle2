@@ -2,6 +2,11 @@
 
 This directory contains utility scripts for development and testing.
 
+## Available Scripts
+
+### 1. Delete User Script (`deleteUser.js`)
+### 2. Add User Credits Script (`addUserCredits.js`)
+
 ## Delete User Script
 
 ### Purpose
@@ -84,3 +89,78 @@ node scripts/deleteUser.js test@example.com
 4. **Register again** with the same email
 
 This allows continuous testing without needing multiple email addresses.
+
+## Add User Credits Script
+
+### Purpose
+The `addUserCredits.js` script allows you to add credits to any user account for testing game play functionality.
+
+### Usage
+
+```bash
+cd backend
+node scripts/addUserCredits.js <email> <amount>
+```
+
+### Examples
+
+```bash
+# Add $1000 to user for game testing
+node scripts/addUserCredits.js ltorres321@gmail.com 1000
+
+# Add $500 to different user
+node scripts/addUserCredits.js test@example.com 500
+
+# Add $50 for smaller test
+node scripts/addUserCredits.js user@test.com 50
+```
+
+### What it does
+
+1. **Finds the user** by email address
+2. **Shows user details** before adding credits
+3. **Adds Credits column** to Users table if it doesn't exist
+4. **Updates user balance** by adding the specified amount
+5. **Shows new balance** after credit addition
+
+### Example Output
+
+```
+🔍 Looking for user with email: ltorres321@gmail.com
+📋 Found user: {
+  id: '7F58EB25-E007-465A-9AF4-E4AE55BE71EF',
+  username: 'ltorres321',
+  email: 'ltorres321@gmail.com',
+  name: 'Leandro Torres',
+  created: 2025-08-10T14:06:03.543Z
+}
+✅ Credits column verified/added to Users table
+💰 Adding $1000 credits to user...
+✅ Successfully added $1000 to ltorres321@gmail.com
+💰 New balance: $1000
+🎮 User is now ready to play games!
+```
+
+### Safety Features
+
+- **Validation**: Requires both email and amount parameters
+- **User verification**: Confirms user exists before adding credits
+- **Database schema**: Automatically creates Credits column if needed
+- **Error handling**: Graceful handling of database errors
+- **Connection cleanup**: Properly closes database connection
+
+### Game Testing Workflow
+
+1. **Register a user** and verify email
+2. **Add credits** for testing:
+   ```bash
+   node scripts/addUserCredits.js your.email@gmail.com 1000
+   ```
+3. **Test game play** with sufficient balance
+4. **Delete user** when done testing:
+   ```bash
+   node scripts/deleteUser.js your.email@gmail.com
+   ```
+5. **Repeat** as needed for testing
+
+This allows testing the complete game flow with realistic user balances.
