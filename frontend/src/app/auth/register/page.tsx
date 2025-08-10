@@ -146,8 +146,27 @@ export default function RegisterPage() {
       } else {
         setErrors({ general: response.message || 'Registration failed' })
       }
-    } catch (error) {
-      setErrors({ general: 'Network error. Please try again.' })
+    } catch (error: any) {
+      console.error('Registration error:', error)
+      
+      // Extract the specific error message from the backend
+      const errorMessage = error.message || 'Registration failed. Please try again.'
+      
+      // Check if it's a validation error about existing user
+      if (errorMessage.includes('email') && errorMessage.includes('already exists')) {
+        setErrors({
+          email: 'This email is already registered. Please use a different email or try logging in.',
+          general: 'Registration failed - user already exists'
+        })
+      } else if (errorMessage.includes('username') && errorMessage.includes('already exists')) {
+        setErrors({
+          username: 'This username is already taken. Please choose a different username.',
+          general: 'Registration failed - user already exists'
+        })
+      } else {
+        // Show the actual backend error message instead of generic "Network error"
+        setErrors({ general: errorMessage })
+      }
     } finally {
       setIsLoading(false)
     }
