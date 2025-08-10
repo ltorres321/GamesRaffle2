@@ -1,4 +1,6 @@
-require('dotenv').config();
+// Load environment variables from multiple files
+require('dotenv').config(); // Load from .env
+require('dotenv').config({ path: '.env.local' }); // Load from .env.local (overrides .env)
 
 const config = {
   app: {
