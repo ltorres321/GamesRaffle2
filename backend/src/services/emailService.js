@@ -11,7 +11,7 @@ class EmailService {
   async initialize() {
     try {
       // Gmail SMTP configuration
-      this.transporter = nodemailer.createTransporter({
+      this.transporter = nodemailer.createTransport({
         service: 'gmail',
         host: 'smtp.gmail.com',
         port: 587,

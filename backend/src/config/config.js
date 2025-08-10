@@ -1,6 +1,7 @@
 // Load environment variables from multiple files
-require('dotenv').config(); // Load from .env
-require('dotenv').config({ path: '.env.local' }); // Load from .env.local (overrides .env)
+// Load .env.local first (highest priority), then .env (fallback)
+require('dotenv').config({ path: '.env.local', override: true });
+require('dotenv').config(); // Fallback to .env for missing variables
 
 const config = {
   app: {
