@@ -29,11 +29,11 @@ node scripts/deleteUser.js test@example.com
 1. **Finds the user** by email address
 2. **Shows user details** before deletion (ID, username, name, created date)
 3. **Deletes related data** in the correct order:
-   - User sessions
-   - Refresh tokens
-   - User picks
-   - Game participations
-   - User verifications
+   - Player picks (PlayerPicks table)
+   - Game participations (SurvivorGamePlayers table)
+   - Game history (GameHistory table)
+   - User verifications (UserVerification table)
+   - Survivor games created by user (SurvivorGames table)
 4. **Deletes the user record** itself
 5. **Confirms deletion** - you can now register with that email again
 

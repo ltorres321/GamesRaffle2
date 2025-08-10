@@ -49,29 +49,31 @@ async function deleteUser(email) {
     });
 
     // Delete related data first (foreign key constraints)
-    console.log(`🗑️  Deleting user sessions...`);
-    await database.query(`
-      DELETE FROM UserSessions WHERE UserId = @userId
-    `, { userId: user.UserId });
-
-    console.log(`🗑️  Deleting refresh tokens...`);
-    await database.query(`
-      DELETE FROM RefreshTokens WHERE UserId = @userId
-    `, { userId: user.UserId });
-
+    // Based on actual database schema from create-schema-sportradar.sql
+    
     console.log(`🗑️  Deleting user picks...`);
     await database.query(`
-      DELETE FROM Picks WHERE UserId = @userId
+      DELETE FROM PlayerPicks WHERE PlayerId = @userId
     `, { userId: user.UserId });
 
-    console.log(`🗑️  Deleting user game participations...`);
+    console.log(`🗑️  Deleting game participations...`);
     await database.query(`
-      DELETE FROM GameParticipants WHERE UserId = @userId
+      DELETE FROM SurvivorGamePlayers WHERE PlayerId = @userId
+    `, { userId: user.UserId });
+
+    console.log(`🗑️  Deleting game history...`);
+    await database.query(`
+      DELETE FROM GameHistory WHERE PlayerId = @userId
     `, { userId: user.UserId });
 
     console.log(`🗑️  Deleting user verifications...`);
     await database.query(`
       DELETE FROM UserVerification WHERE UserId = @userId
+    `, { userId: user.UserId });
+
+    console.log(`🗑️  Deleting survivor games created by user...`);
+    await database.query(`
+      DELETE FROM SurvivorGames WHERE CreatedByUserId = @userId
     `, { userId: user.UserId });
 
     // Finally delete the user
