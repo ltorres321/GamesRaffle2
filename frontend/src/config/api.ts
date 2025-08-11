@@ -2,7 +2,7 @@
 function getBackendURL(): string {
   // For production (deployed to Azure Static Web Apps)
   if (process.env.NODE_ENV === 'production') {
-    return process.env.NEXT_PUBLIC_API_URL || 'https://your-production-backend-api.azurewebsites.net';
+    return process.env.NEXT_PUBLIC_API_URL || 'https://games-raffle-backend-api.azurewebsites.net';
   }
 
   // For GitHub Codespaces - Auto-detect the URL
