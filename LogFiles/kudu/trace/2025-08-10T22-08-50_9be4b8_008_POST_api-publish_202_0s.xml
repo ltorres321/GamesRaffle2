@@ -1,0 +1,13 @@
+<step title="Incoming Request" date="2025-08-10T22:08:50.148" instance="9be4b8" url="/api/publish?type=zip&amp;async=True" method="POST" type="request" pid="821,1,30" Accept="*/*" Host="games-raffle-backend-api.scm.azurewebsites.net" User-Agent="AZURECLI/2.76.0 (DEB)" Accept-Encoding="gzip, deflate" Authorization="Bea..." Cache-Control="no-cache" Content-Type="application/octet-stream" Cookie="ARRAffinity=9be4b8e022d07610be288d9acbc9280ae50fd944942360603a31288ed1ee591e; ARRAffinitySameSite=9be4b8e022d07610be288d9acbc9280ae50fd944942360603a31288ed1ee591e" Content-Length="135585" x-ms-client-request-id="93f08bd8-7636-11f0-8d62-7c1e52b0b038" x-ms-artifact-checksum="7c9bb7e2737dfac04c04bf73fdc7bc59729473a584a51103895c81cc09c05f3f" X-ARR-LOG-ID="93f08bd8-7636-11f0-8d62-7c1e52b0b038" CLIENT-IP="135.237.130.225:36361" X-SITE-DEPLOYMENT-ID="games-raffle-backend-api" WAS-DEFAULT-HOSTNAME="games-raffle-backend-api.scm.azurewebsites.net" X-Forwarded-Proto="https" X-AppService-Proto="https" X-Forwarded-TlsVersion="1.3" X-WAWS-Unencoded-URL="/api/publish?type=zip&amp;async=True" X-Client-IP="135.237.130.225" X-Client-Port="36361" >
+  <step title="OneDeploy" date="2025-08-10T22:08:50.186" >
+    <step title="Starting PushDeployAsync" date="2025-08-10T22:08:50.199" /><!-- duration: 3ms -->
+    <step title="Writing artifact to /tmp/zipdeploy/ffd0de54-4cf0-44e6-bb18-6445f6899d1a.zip" date="2025-08-10T22:08:50.224" >
+      <step title="Writing multipart request body to /tmp/zipdeploy/ffd0de54-4cf0-44e6-bb18-6445f6899d1a.zip" date="2025-08-10T22:08:50.227" /><!-- duration: 4ms -->
+    </step><!-- duration: 26ms -->
+    <step title="Start deployment in the background" date="2025-08-10T22:08:50.261" >
+      <step title="Acquiring Deployment Lock" date="2025-08-10T22:08:50.279" /><!-- duration: 7ms -->
+      <step title="Acquired Deployment Lock" date="2025-08-10T22:08:50.331" /><!-- duration: 5ms -->
+    </step><!-- duration: 166ms -->
+  </step><!-- duration: 253ms -->
+  <step title="Outgoing response" date="2025-08-10T22:08:50.442" type="response" statusCode="202" statusText="Accepted" /><!-- duration: 4ms -->
+</step><!-- duration: 311ms -->

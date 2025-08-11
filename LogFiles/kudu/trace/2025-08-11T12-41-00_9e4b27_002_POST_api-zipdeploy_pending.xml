@@ -1,0 +1,20 @@
+<step title="Incoming Request" date="2025-08-11T12:41:00.311" instance="9e4b27" url="/api/zipdeploy?isAsync=true" method="POST" type="request" pid="821,1,5" Accept="*/*" Host="games-raffle-backend-api.scm.azurewebsites.net" User-Agent="AZURECLI/2.76.0 (DEB)" Accept-Encoding="gzip, deflate" Authorization="Bea..." Cache-Control="no-cache" Content-Type="application/octet-stream" Content-Length="146149" x-ms-client-request-id="5beb0ff4-76b0-11f0-942e-7c1e52e3ddc2" x-ms-artifact-checksum="58d8bbffc1a3261117534ea3ae38a34f424c8dfd44069c258c95f9582daa2af7" X-ARR-LOG-ID="5beb0ff4-76b0-11f0-942e-7c1e52e3ddc2" CLIENT-IP="135.237.130.227:25112" X-SITE-DEPLOYMENT-ID="games-raffle-backend-api" WAS-DEFAULT-HOSTNAME="games-raffle-backend-api.scm.azurewebsites.net" X-Forwarded-Proto="https" X-AppService-Proto="https" X-Forwarded-TlsVersion="1.3" X-WAWS-Unencoded-URL="/api/zipdeploy?isAsync=true" X-Client-IP="135.237.130.227" X-Client-Port="25112" >
+  <step title="ZipPushDeploy" date="2025-08-11T12:41:01.420" >
+    <step title="ZipDeploy. Extract zip. Remote build." date="2025-08-11T12:41:01.430" /><!-- duration: 3ms -->
+    <step title="None repository commit" date="2025-08-11T12:41:01.440" >
+      <step title="Commit id: bcc69663-2341-42df-8871-91c44465f7dc" date="2025-08-11T12:41:01.443" Message="N/A" AuthorName="N/A" AuthorEmail="N/A" /><!-- duration: 4ms -->
+    </step><!-- duration: 11ms -->
+    <step title="Starting PushDeployAsync" date="2025-08-11T12:41:01.454" /><!-- duration: 3ms -->
+    <step title="Removing node_modules symlink" date="2025-08-11T12:41:01.604" >
+      <step title="Removing _del_node_modules symlink" date="2025-08-11T12:41:01.634" >
+        <step title="Writing artifact to /tmp/zipdeploy/c5ac0213-9af8-46ee-96a2-8ffc57841e28.zip" date="2025-08-11T12:41:01.653" >
+          <step title="Writing multipart request body to /tmp/zipdeploy/c5ac0213-9af8-46ee-96a2-8ffc57841e28.zip" date="2025-08-11T12:41:01.658" /><!-- duration: 3ms -->
+        </step><!-- duration: 24ms -->
+        <step title="Removing previous build artifact&apos;s manifest file" date="2025-08-11T12:41:01.701" >
+          <step title="Start deployment in the background" date="2025-08-11T12:41:01.760" >
+            <step title="Acquiring Deployment Lock" date="2025-08-11T12:41:01.802" /><!-- duration: 6ms -->
+            <step title="Acquired Deployment Lock" date="2025-08-11T12:41:01.865" /><!-- duration: 4ms -->
+          </step><!-- duration: 169ms -->
+        </step><!-- duration: 248ms -->
+        <step title="Outgoing response" date="2025-08-11T12:41:01.965" type="response" statusCode="202" statusText="Accepted" /><!-- duration: 7ms -->
+      </step><!-- duration: 341ms -->

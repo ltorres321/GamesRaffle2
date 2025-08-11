@@ -1,0 +1,9 @@
+<step title="Incoming Request" date="2025-08-10T21:57:47.420" instance="9be4b8" url="/api/deployments/latest" method="GET" type="request" pid="821,1,7" Accept="*/*" Host="games-raffle-backend-api.scm.azurewebsites.net" User-Agent="AZURECLI/2.76.0 (DEB)" Accept-Encoding="gzip, deflate" Authorization="Bea..." x-ms-client-request-id="f39e2286-7634-11f0-85ed-7c1e52b0b038" X-ARR-LOG-ID="f39e2286-7634-11f0-85ed-7c1e52b0b038" CLIENT-IP="135.237.130.225:36361" X-SITE-DEPLOYMENT-ID="games-raffle-backend-api" WAS-DEFAULT-HOSTNAME="games-raffle-backend-api.scm.azurewebsites.net" X-Forwarded-Proto="https" X-AppService-Proto="https" X-Forwarded-TlsVersion="1.3" X-WAWS-Unencoded-URL="/api/deployments/latest" X-Client-IP="135.237.130.225" X-Client-Port="36361" >
+  <step title="Cleanup Xml Logs" date="2025-08-10T21:57:47.424" /><!-- duration: 10ms -->
+  <step title="DeploymentService.GetResult" date="2025-08-10T21:57:47.475" >
+    <step title="DeploymentService.GetLatestDeployment" date="2025-08-10T21:57:47.483" >
+      <step title="DeploymentManager.GetResults" date="2025-08-10T21:57:47.487" /><!-- duration: 195ms -->
+    </step><!-- duration: 205ms -->
+  </step><!-- duration: 217ms -->
+  <step title="Outgoing response" date="2025-08-10T21:57:47.718" type="response" statusCode="202" statusText="Accepted" /><!-- duration: 4ms -->
+</step><!-- duration: 307ms -->

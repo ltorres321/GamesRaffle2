@@ -21,6 +21,8 @@ git add .
 git commit -m "Attach frontEnd"
 git push origin main
 
+install az
+curl -sL https://aka.ms/InstallAzureCLIDeb | sudo bash
 
 
 VITE_API_BASE_URL=https://gamesrafflestagingapisz.azurewebsites.net/api npm run dev &
