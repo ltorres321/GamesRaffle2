@@ -72,6 +72,13 @@ export default function VerifyPage() {
         setSuccess(prev => ({ ...prev, email: 'Email verified successfully!' }))
         setEmailCode('')
         await fetchUserInfo() // Refresh user info
+        
+        // User can now access the site with just email verification
+        if (response.data?.canAccessSite) {
+          setTimeout(() => {
+            router.push('/')
+          }, 2000)
+        }
       } else {
         setErrors(prev => ({ ...prev, email: response.message || 'Invalid verification code' }))
       }
@@ -99,8 +106,8 @@ export default function VerifyPage() {
         setSmsCode('')
         await fetchUserInfo() // Refresh user info
         
-        if (response.data?.fullyVerified) {
-          // User is fully verified, redirect to home
+        // User can now access the site with just phone verification
+        if (response.data?.canAccessSite) {
           setTimeout(() => {
             router.push('/')
           }, 2000)
@@ -163,7 +170,9 @@ export default function VerifyPage() {
 
   const emailVerified = userInfo.emailVerified || success.email
   const phoneVerified = userInfo.phoneVerified || success.sms
+  const hasAnyVerification = emailVerified || phoneVerified
   const fullyVerified = emailVerified && phoneVerified
+  const canAccessSite = hasAnyVerification
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-900 via-green-900 to-gray-900 flex items-center justify-center px-4 py-12">
@@ -176,15 +185,18 @@ export default function VerifyPage() {
             </p>
           </div>
 
-          {/* Full verification success */}
-          {fullyVerified && (
+          {/* Verification success messages */}
+          {canAccessSite && (
             <div className="mb-6 p-4 bg-green-100 border border-green-300 text-green-700 rounded-md">
               <div className="flex items-center">
                 <svg className="w-5 h-5 mr-2" fill="currentColor" viewBox="0 0 20 20">
                   <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
                 </svg>
                 <span className="font-medium">
-                  Account fully verified! Redirecting to home page...
+                  {fullyVerified
+                    ? 'Account fully verified! Redirecting to home page...'
+                    : 'Account verified! You can now access the site. Redirecting...'
+                  }
                 </span>
               </div>
             </div>
@@ -308,10 +320,19 @@ export default function VerifyPage() {
           </div>
 
           {/* Feature limitations notice */}
-          {!fullyVerified && (
+          {!canAccessSite && (
             <div className="bg-yellow-50 border border-yellow-200 rounded-md p-3 mb-6">
               <p className="text-sm text-yellow-800">
-                <strong>Limited Access:</strong> You can browse contests but cannot make picks or deposits until verification is complete.
+                <strong>Verification Required:</strong> Please complete email OR phone verification to access the site.
+              </p>
+            </div>
+          )}
+
+          {/* Partial verification notice */}
+          {canAccessSite && !fullyVerified && (
+            <div className="bg-blue-50 border border-blue-200 rounded-md p-3 mb-6">
+              <p className="text-sm text-blue-800">
+                <strong>Optional:</strong> Complete {emailVerified ? 'phone' : 'email'} verification for enhanced security. You can do this later from your profile page.
               </p>
             </div>
           )}

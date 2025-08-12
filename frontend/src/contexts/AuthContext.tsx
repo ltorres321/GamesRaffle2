@@ -2,6 +2,7 @@
 
 import { createContext, useContext, useEffect, useState, ReactNode } from 'react'
 import { useRouter } from 'next/navigation'
+import API_CONFIG from '@/config/api'
 
 interface User {
   id: string
@@ -55,7 +56,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         return
       }
 
-      const response = await fetch('/api/auth/verify', {
+      const response = await fetch(`${API_CONFIG.BASE_URL}${API_CONFIG.ENDPOINTS.AUTH.VERIFY}`, {
         headers: {
           'Authorization': `Bearer ${token}`
         }
@@ -91,7 +92,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       const refreshToken = localStorage.getItem('refreshToken')
       if (!refreshToken) return false
 
-      const response = await fetch('/api/auth/refresh', {
+      const response = await fetch(`${API_CONFIG.BASE_URL}${API_CONFIG.ENDPOINTS.AUTH.REFRESH}`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -117,7 +118,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const login = async (email: string, password: string): Promise<boolean> => {
     try {
-      const response = await fetch('/api/auth/login', {
+      const response = await fetch(`${API_CONFIG.BASE_URL}${API_CONFIG.ENDPOINTS.AUTH.LOGIN}`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -148,7 +149,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       const sessionId = localStorage.getItem('sessionId')
       
       if (token) {
-        await fetch('/api/auth/logout', {
+        await fetch(`${API_CONFIG.BASE_URL}${API_CONFIG.ENDPOINTS.AUTH.LOGOUT}`, {
           method: 'POST',
           headers: {
             'Authorization': `Bearer ${token}`,

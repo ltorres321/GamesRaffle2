@@ -123,14 +123,14 @@ class ApiService {
     return this.request(API_CONFIG.ENDPOINTS.AUTH.ME)
   }
 
-  async verifyEmail(token: string): Promise<ApiResponse> {
+  async verifyEmail(token: string): Promise<ApiResponse<{ isVerified: boolean; canAccessSite: boolean }>> {
     return this.request(API_CONFIG.ENDPOINTS.AUTH.VERIFY_EMAIL, {
       method: 'POST',
       body: JSON.stringify({ token }),
     })
   }
 
-  async verifyPhone(code: string): Promise<ApiResponse<{ fullyVerified: boolean }>> {
+  async verifyPhone(code: string): Promise<ApiResponse<{ isVerified: boolean; canAccessSite: boolean; fullyVerified: boolean }>> {
     return this.request(API_CONFIG.ENDPOINTS.AUTH.VERIFY_PHONE, {
       method: 'POST',
       body: JSON.stringify({ code }),

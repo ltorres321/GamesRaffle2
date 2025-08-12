@@ -7,14 +7,14 @@ import { useAuth } from '@/contexts/AuthContext'
 
 export default function Header() {
   const [isMenuOpen, setIsMenuOpen] = useState(false)
-  const { isAuthenticated } = useAuth()
+  const { user, isAuthenticated, logout } = useAuth()
 
   const navigation = [
     { name: 'Home', href: '/' },
     { name: 'Contest Lobby', href: '/contests' },
-    { name: 'Quick Picks', href: '/quick-picks' },
     { name: 'My Contests', href: '/my-contests' },
     { name: 'Commissioner', href: '/commissioner' },
+    { name: 'My Profile', href: '/profile' },
   ]
 
   return (
@@ -53,14 +53,27 @@ export default function Header() {
 
             {/* User Account */}
             {isAuthenticated ? (
-              <div className="flex items-center space-x-3">
-                <span className="text-gold-400 font-semibold text-sm">$49</span>
-                <span className="text-gray-300 text-sm">Balance</span>
-                <button className="btn-gold text-sm px-4 py-2">
-                  Deposit
-                </button>
-                <div className="flex items-center space-x-2 cursor-pointer">
-                  <UserCircleIcon className="h-8 w-8 text-gray-400" />
+              <div className="flex items-center space-x-4">
+                <div className="text-gray-300 text-sm">
+                  Welcome, <span className="text-gold-400 font-semibold">{user?.firstName || user?.username}</span>
+                </div>
+                <div className="flex items-center space-x-3">
+                  <span className="text-gold-400 font-semibold text-sm">$49</span>
+                  <span className="text-gray-300 text-sm">Balance</span>
+                  <button className="btn-gold text-sm px-4 py-2">
+                    Deposit
+                  </button>
+                  <div className="flex items-center space-x-2">
+                    <Link href="/profile" className="p-1 text-gray-400 hover:text-gold-400 transition-colors">
+                      <UserCircleIcon className="h-8 w-8" />
+                    </Link>
+                    <button
+                      onClick={() => logout()}
+                      className="text-gray-400 hover:text-red-400 text-sm transition-colors"
+                    >
+                      Logout
+                    </button>
+                  </div>
                 </div>
               </div>
             ) : (

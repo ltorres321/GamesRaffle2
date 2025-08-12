@@ -1,33 +1,16 @@
 {
   "name": "games-raffle-backend",
   "version": "1.0.0",
-  "description": "Games Raffle Backend API - NFL Survivor Sports Betting Platform",
+  "description": "Games Raffle Backend API",
   "main": "src/server.js",
   "scripts": {
     "start": "node src/server.js",
-    "dev": "nodemon src/server.js",
-    "build": "echo 'No build step required'",
-    "test": "jest",
-    "lint": "eslint src/**/*.js",
-    "lint:fix": "eslint src/**/*.js --fix"
+    "postinstall": "npm install --production"
   },
-  "keywords": [
-    "nfl",
-    "survivor",
-    "sports-betting",
-    "api",
-    "nodejs",
-    "express",
-    "sportradar"
-  ],
-  "author": "Games Raffle Team",
-  "license": "MIT",
   "dependencies": {
     "express": "^4.18.2",
     "cors": "^2.8.5",
     "helmet": "^7.0.0",
-    "compression": "^1.7.4",
-    "morgan": "^1.10.0",
     "express-rate-limit": "^6.10.0",
     "joi": "^17.9.2",
     "bcrypt": "^5.1.0",
@@ -38,29 +21,9 @@
     "twilio": "^4.14.0",
     "dotenv": "^16.3.1",
     "winston": "^3.10.0",
-    "node-cron": "^3.0.2",
-    "axios": "^1.5.0",
-    "express-validator": "^7.0.1"
-  },
-  "devDependencies": {
-    "nodemon": "^3.0.1",
-    "jest": "^29.6.2",
-    "supertest": "^6.3.3",
-    "eslint": "^8.45.0",
-    "eslint-config-standard": "^17.1.0",
-    "eslint-plugin-import": "^2.27.5",
-    "eslint-plugin-n": "^16.0.1",
-    "eslint-plugin-promise": "^6.1.1"
+    "node-cron": "^3.0.2"
   },
   "engines": {
-    "node": "20.x"
-  },
-  "repository": {
-    "type": "git",
-    "url": "git+https://github.com/yourusername/GamesRaffle2.git"
-  },
-  "bugs": {
-    "url": "https://github.com/yourusername/GamesRaffle2/issues"
-  },
-  "homepage": "https://github.com/yourusername/GamesRaffle2#readme"
+    "node": ">=18.0.0"
+  }
 }

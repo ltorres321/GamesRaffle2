@@ -62,10 +62,11 @@ export default function LoginPage() {
         localStorage.setItem('sessionId', data.data.tokens.sessionId)
         
         // Check if user needs verification
+        // Now users only need ONE verification method (email OR phone) to access the site
         if (!data.data.user.isVerified) {
           router.push('/auth/verify')
         } else {
-          router.push('/') // Redirect to home page
+          router.push('/') // Redirect to home page - user has at least one verification method
         }
       } else {
         // Handle different error types
