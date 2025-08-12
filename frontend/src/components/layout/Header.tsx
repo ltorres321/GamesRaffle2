@@ -12,7 +12,6 @@ export default function Header() {
   const navigation = [
     { name: 'Home', href: '/' },
     { name: 'Contest Lobby', href: '/contests' },
-    { name: 'Quick Picks', href: '/quick-picks' },
     { name: 'My Contests', href: '/my-contests' },
     { name: 'Commissioner', href: '/commissioner' },
     { name: 'My Profile', href: '/profile' },
