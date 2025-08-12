@@ -12,22 +12,22 @@ const leagues = [
     icon: '🏈',
     color: 'bg-primary-500 text-white'
   },
-  { 
-    id: 'PGA', 
-    name: 'PGA', 
-    icon: '⛳',
+  {
+    id: 'NBA',
+    name: 'NBA',
+    icon: '🏀',
     color: 'bg-surface-light text-gray-300'
   },
-  { 
-    id: 'MLB', 
-    name: 'MLB', 
+  {
+    id: 'MLB',
+    name: 'MLB',
     icon: '⚾',
     color: 'bg-surface-light text-gray-300'
   },
-  { 
-    id: 'NCAAF', 
-    name: 'NCAAF', 
-    icon: '🏆',
+  {
+    id: 'NHL',
+    name: 'NHL',
+    icon: '🏒',
     color: 'bg-surface-light text-gray-300'
   }
 ]

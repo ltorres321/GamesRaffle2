@@ -134,6 +134,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         localStorage.setItem('sessionId', data.data.tokens.sessionId)
         
         setUser(data.data.user)
+        setIsLoading(false) // Ensure loading is false after login
         return true
       }
       return false

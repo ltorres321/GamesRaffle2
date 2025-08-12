@@ -3,7 +3,7 @@
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
-import API_CONFIG from '@/config/api'
+import { useAuth } from '@/contexts/AuthContext'
 
 interface LoginData {
   email: string
@@ -12,6 +12,7 @@ interface LoginData {
 
 export default function LoginPage() {
   const router = useRouter()
+  const { login } = useAuth()
   const [formData, setFormData] = useState<LoginData>({
     email: '',
     password: ''
@@ -42,39 +43,14 @@ export default function LoginPage() {
     setErrors({})
 
     try {
-      const loginUrl = `${API_CONFIG.BASE_URL}${API_CONFIG.ENDPOINTS.AUTH.LOGIN}`
-      console.log('🔗 Login URL:', loginUrl)
+      const success = await login(formData.email, formData.password)
       
-      const response = await fetch(loginUrl, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(formData),
-      })
-
-      const data = await response.json()
-
-      if (data.success) {
-        // Store tokens
-        localStorage.setItem('accessToken', data.data.tokens.accessToken)
-        localStorage.setItem('refreshToken', data.data.tokens.refreshToken)
-        localStorage.setItem('sessionId', data.data.tokens.sessionId)
-        
-        // Check if user needs verification
-        // Now users only need ONE verification method (email OR phone) to access the site
-        if (!data.data.user.isVerified) {
-          router.push('/auth/verify')
-        } else {
-          router.push('/') // Redirect to home page - user has at least one verification method
-        }
+      if (success) {
+        // Login successful - AuthContext will handle state update
+        // Navigate to home page - the header will update automatically
+        router.push('/')
       } else {
-        // Handle different error types
-        if (response.status === 401 || data.message?.toLowerCase().includes('invalid') || data.message?.toLowerCase().includes('not found')) {
-          setErrors({ general: 'Username or password is incorrect' })
-        } else {
-          setErrors({ general: data.message || 'Login failed' })
-        }
+        setErrors({ general: 'Username or password is incorrect' })
       }
     } catch (error) {
       console.error('🚨 Login error:', error)
