@@ -355,18 +355,18 @@ router.post('/logout', authenticate, catchAsync(async (req, res) => {
 router.get('/me', authenticate, catchAsync(async (req, res) => {
   const userId = req.user.id;
 
-  // Get detailed user information
+  // Get detailed user information with verification status
   const result = await database.query(`
-    SELECT u.UserId, u.Username, u.Email, u.FirstName, u.LastName, 
+    SELECT u.UserId, u.Username, u.Email, u.FirstName, u.LastName,
            u.DateOfBirth, u.PhoneNumber, u.Role, u.IsVerified, u.IsActive,
-           u.CreatedAt, u.LastLoginAt,
+           u.EmailVerified, u.PhoneVerified, u.CreatedAt, u.LastLoginAt,
            uv.VerificationStatus
     FROM Users u
-    LEFT JOIN UserVerification uv ON u.UserId = uv.UserId 
+    LEFT JOIN UserVerification uv ON u.UserId = uv.UserId
       AND uv.VerificationId = (
-        SELECT TOP 1 VerificationId 
-        FROM UserVerification 
-        WHERE UserId = u.UserId 
+        SELECT TOP 1 VerificationId
+        FROM UserVerification
+        WHERE UserId = u.UserId
         ORDER BY SubmittedAt DESC
       )
     WHERE u.UserId = @userId
@@ -392,6 +392,8 @@ router.get('/me', authenticate, catchAsync(async (req, res) => {
         role: user.Role,
         isVerified: user.IsVerified,
         isActive: user.IsActive,
+        emailVerified: user.EmailVerified,
+        phoneVerified: user.PhoneVerified,
         verificationStatus: user.VerificationStatus || 'Pending',
         createdAt: user.CreatedAt,
         lastLoginAt: user.LastLoginAt
@@ -509,13 +511,14 @@ router.post('/verify-email', catchAsync(async (req, res) => {
 
   const user = result.recordset[0];
 
-  // Mark email as verified
+  // Mark email as verified and user as partially verified
   await database.query(`
-    UPDATE Users 
-    SET EmailVerified = 1, 
+    UPDATE Users
+    SET EmailVerified = 1,
         EmailVerifiedAt = GETUTCDATE(),
         EmailVerificationToken = NULL,
         EmailVerificationExpires = NULL,
+        IsVerified = 1,
         UpdatedAt = GETUTCDATE()
     WHERE UserId = @userId
   `, { userId: user.UserId });
@@ -525,7 +528,11 @@ router.post('/verify-email', catchAsync(async (req, res) => {
 
   res.json({
     success: true,
-    message: 'Email verified successfully'
+    message: 'Email verified successfully',
+    data: {
+      isVerified: true,
+      canAccessSite: true
+    }
   });
 }));
 
@@ -552,30 +559,25 @@ router.post('/verify-phone', catchAsync(async (req, res) => {
 
   const user = result.recordset[0];
 
-  // Mark phone as verified
+  // Mark phone as verified and user as verified (single verification is sufficient)
   await database.query(`
-    UPDATE Users 
-    SET PhoneVerified = 1, 
+    UPDATE Users
+    SET PhoneVerified = 1,
         PhoneVerifiedAt = GETUTCDATE(),
         PhoneVerificationCode = NULL,
         PhoneVerificationExpires = NULL,
+        IsVerified = 1,
         UpdatedAt = GETUTCDATE()
     WHERE UserId = @userId
   `, { userId: user.UserId });
 
-  // Check if both email and phone are verified, then mark user as fully verified
+  // Check current verification status for response
   const userStatus = await database.query(`
     SELECT EmailVerified, PhoneVerified FROM Users WHERE UserId = @userId
   `, { userId: user.UserId });
 
   const userVerification = userStatus.recordset[0];
-  if (userVerification.EmailVerified && userVerification.PhoneVerified) {
-    await database.query(`
-      UPDATE Users 
-      SET IsVerified = 1, UpdatedAt = GETUTCDATE()
-      WHERE UserId = @userId
-    `, { userId: user.UserId });
-  }
+  const fullyVerified = userVerification.EmailVerified && userVerification.PhoneVerified;
 
   // Log verification
   logger.logBusinessEvent('phone_verified', { userId: user.UserId, phoneNumber: user.PhoneNumber }, user.UserId);
@@ -584,7 +586,9 @@ router.post('/verify-phone', catchAsync(async (req, res) => {
     success: true,
     message: 'Phone number verified successfully',
     data: {
-      fullyVerified: userVerification.EmailVerified && userVerification.PhoneVerified
+      isVerified: true,
+      canAccessSite: true,
+      fullyVerified: fullyVerified
     }
   });
 }));
