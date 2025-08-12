@@ -135,15 +135,22 @@ GO
 -- Create a sample admin user (password: Admin123!)
 -- In production, this should be created through the registration process
 INSERT INTO dbo.Users (
-    Username, 
-    Email, 
-    PasswordHash, 
-    FirstName, 
-    LastName, 
-    DateOfBirth, 
-    Role, 
-    IsVerified, 
-    IsActive
+    Username,
+    Email,
+    PasswordHash,
+    FirstName,
+    LastName,
+    DateOfBirth,
+    PhoneNumber,
+    StreetAddress,
+    City,
+    State,
+    ZipCode,
+    Role,
+    IsVerified,
+    IsActive,
+    EmailVerified,
+    PhoneVerified
 ) VALUES (
     'admin',
     'admin@survivorsports.com',
@@ -151,7 +158,14 @@ INSERT INTO dbo.Users (
     'System',
     'Administrator',
     '1990-01-01',
+    '+1-555-0123',
+    '123 Admin Street',
+    'Seattle',
+    'WA',
+    '98101',
     'SuperAdmin',
+    1,
+    1,
     1,
     1
 );

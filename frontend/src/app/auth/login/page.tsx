@@ -3,6 +3,7 @@
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
+import API_CONFIG from '@/config/api'
 
 interface LoginData {
   email: string
@@ -41,7 +42,10 @@ export default function LoginPage() {
     setErrors({})
 
     try {
-      const response = await fetch('/api/auth/login', {
+      const loginUrl = `${API_CONFIG.BASE_URL}${API_CONFIG.ENDPOINTS.AUTH.LOGIN}`
+      console.log('🔗 Login URL:', loginUrl)
+      
+      const response = await fetch(loginUrl, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -72,7 +76,8 @@ export default function LoginPage() {
         }
       }
     } catch (error) {
-      setErrors({ general: 'Username or password is incorrect' })
+      console.error('🚨 Login error:', error)
+      setErrors({ general: 'Network error - please check connection' })
     } finally {
       setIsLoading(false)
     }

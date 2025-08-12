@@ -206,10 +206,14 @@ const config = {
 function validateConfig() {
   const required = [
     'SQL_CONNECTION_STRING',
-    'REDIS_CONNECTION_STRING',
     'JWT_SECRET',
     'SESSION_SECRET'
   ];
+  
+  // Only require Redis if explicitly using Redis (not memory cache fallback)
+  if (process.env.USE_REDIS === 'true' || (process.env.NODE_ENV === 'production' && process.env.USE_MEMORY_CACHE !== 'true')) {
+    required.push('REDIS_CONNECTION_STRING');
+  }
   
   const missing = required.filter(key => !process.env[key]);
   
