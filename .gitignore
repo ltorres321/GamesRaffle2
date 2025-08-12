@@ -36,3 +36,8 @@ coverage/
 .Trashes
 ehthumbs.db
 Thumbs.db
+-e 
+# Azure deployment artifacts
+LogFiles/
+deployments/
+backend-error-logs.zip
