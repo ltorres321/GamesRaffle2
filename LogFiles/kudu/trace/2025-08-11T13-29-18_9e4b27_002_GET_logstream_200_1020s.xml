@@ -1,5 +1,0 @@
-<step title="Incoming Request" date="2025-08-11T13:29:18.675" instance="9e4b27" url="/logstream" method="GET" type="request" pid="821,1,29" Host="games-raffle-backend-api.scm.azurewebsites.net" User-Agent="AZURECLI/2.76.0 (DEB)" Accept-Encoding="identity" Authorization="Bea..." x-ms-client-request-id="7a5c03a2-76b6-11f0-af01-7c1e52e3ddc2" X-ARR-LOG-ID="7a5c03a2-76b6-11f0-af01-7c1e52e3ddc2" CLIENT-IP="135.237.130.227:25112" X-SITE-DEPLOYMENT-ID="games-raffle-backend-api" WAS-DEFAULT-HOSTNAME="games-raffle-backend-api.scm.azurewebsites.net" X-Forwarded-Proto="https" X-AppService-Proto="https" X-Forwarded-TlsVersion="1.3" X-WAWS-Unencoded-URL="/logstream" X-Client-IP="135.237.130.227" X-Client-Port="25112" >
-  <step title="LogStreamHandlerMiddleware.Invoke" date="2025-08-11T13:29:18.706" /><!-- duration: 253ms -->
-  <step title="Error occurred" date="2025-08-11T13:46:18.969" type="error" text="LogStreamManager: ProcessRequest end" /><!-- duration: 6ms -->
-  <step title="Outgoing response" date="2025-08-11T13:46:18.985" type="response" statusCode="200" statusText="OK" /><!-- duration: 3ms -->
-</step><!-- duration: 1020315ms -->
