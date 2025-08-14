@@ -41,3 +41,5 @@ Thumbs.db
 LogFiles/
 deployments/
 backend-error-logs.zip
+LogFiles/
+frontend/.next/
