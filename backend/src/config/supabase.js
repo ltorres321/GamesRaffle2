@@ -10,20 +10,36 @@ class PostgreSQLDatabase {
 
   async initialize() {
     try {
+      console.log('🔌 Initializing PostgreSQL database connection...');
       logger.info('Initializing PostgreSQL database connection...');
       
       if (!config.database.connectionString) {
         throw new Error('Database connection string is not configured');
       }
 
-      // Create PostgreSQL connection pool
+      // Use connection pooling mode for better compatibility with cloud providers
+      let connectionString = config.database.connectionString;
+      
+      // Convert direct connection (port 5432) to pooling mode (port 6543) for Supabase
+      if (connectionString.includes(':5432/')) {
+        connectionString = connectionString.replace(':5432/', ':6543/');
+        console.log('🔄 Using Supabase connection pooling mode (port 6543)');
+        logger.info('Using Supabase connection pooling mode for better cloud compatibility');
+      }
+
+      console.log('🌐 Connection string pattern:', connectionString.replace(/:[^:@]*@/, ':****@'));
+
+      // Create PostgreSQL connection pool with robust settings for Supabase
       this.pool = new Pool({
-        connectionString: config.database.connectionString,
+        connectionString: connectionString,
         ssl: process.env.NODE_ENV === 'production' ? { rejectUnauthorized: false } : false,
-        max: config.database.pool.max || 10,
+        max: config.database.pool.max || 5, // Reduced for free tier
         min: config.database.pool.min || 0,
         idleTimeoutMillis: config.database.pool.idleTimeoutMillis || 30000,
-        connectionTimeoutMillis: config.database.pool.acquireTimeoutMillis || 60000,
+        connectionTimeoutMillis: 30000, // 30 seconds timeout
+        acquireTimeoutMillis: 60000, // 60 seconds to acquire connection
+        statement_timeout: 30000, // 30 seconds statement timeout
+        query_timeout: 30000, // 30 seconds query timeout
       });
 
       // Handle pool events
