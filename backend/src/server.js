@@ -205,10 +205,11 @@ async function initializeApp() {
     
     // Start server
     const port = config.app.port;
-    const server = app.listen(port, () => {
-      logger.info(`Server running on port ${port} in ${config.app.env} mode`);
-      logger.info(`Health check available at: http://localhost:${port}/health`);
-      logger.info(`API documentation at: http://localhost:${port}/api/docs`);
+    const host = config.app.host;
+    const server = app.listen(port, host, () => {
+      logger.info(`Server running on ${host}:${port} in ${config.app.env} mode`);
+      logger.info(`Health check available at: http://${host}:${port}/health`);
+      logger.info(`API documentation at: http://${host}:${port}/api/docs`);
     });
     
     // Graceful shutdown handling
