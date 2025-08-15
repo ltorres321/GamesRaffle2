@@ -1,8 +1,8 @@
 // Auto-detect the correct backend URL based on environment
 function getBackendURL(): string {
-  // For production (deployed to Azure Static Web Apps)
+  // For production (deployed to Netlify with Render backend)
   if (process.env.NODE_ENV === 'production') {
-    return process.env.NEXT_PUBLIC_API_URL || 'https://games-raffle-backend-api.azurewebsites.net';
+    return process.env.NEXT_PUBLIC_API_URL || 'https://gamesraffle2.onrender.com';
   }
 
   // For GitHub Codespaces - Auto-detect the URL
