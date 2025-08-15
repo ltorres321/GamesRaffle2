@@ -189,34 +189,66 @@ app.use(errorHandler);
 // Initialize database connection
 async function initializeApp() {
   try {
+    console.log('🚀 Starting Survivor Sports API server...');
     logger.info('Starting Survivor Sports API server...');
     
-    // Initialize database connection
-    await database.initialize();
-    logger.info('Database connected successfully');
-    
-    // Initialize Memory cache
-    await memoryCache.connect();
-    logger.info('Memory cache initialized successfully');
-    
-    // Initialize and start scheduled jobs
-    scheduledJobService.start();
-    logger.info('Scheduled jobs initialized and started');
-    
-    // Start server
+    // Start server FIRST so Render can detect the port immediately
     const port = config.app.port;
     const host = config.app.host;
+    
+    console.log(`🌐 Attempting to bind to ${host}:${port}`);
+    console.log(`📊 Environment: ${config.app.env}`);
+    console.log(`🔧 Process ENV PORT: ${process.env.PORT}`);
+    
     const server = app.listen(port, host, () => {
+      console.log(`✅ Server running on ${host}:${port} in ${config.app.env} mode`);
       logger.info(`Server running on ${host}:${port} in ${config.app.env} mode`);
       logger.info(`Health check available at: http://${host}:${port}/health`);
       logger.info(`API documentation at: http://${host}:${port}/api/docs`);
+      
+      // Initialize other services AFTER server is listening
+      initializeServices();
     });
+    
+    server.on('error', (err) => {
+      console.error('❌ Server failed to start:', err);
+      logger.error('Server failed to start:', err);
+      process.exit(1);
+    });
+    
+    // Initialize other services after server is listening
+    async function initializeServices() {
+      try {
+        console.log('🔌 Initializing database connection...');
+        await database.initialize();
+        console.log('✅ Database connected successfully');
+        logger.info('Database connected successfully');
+        
+        console.log('💾 Initializing memory cache...');
+        await memoryCache.connect();
+        console.log('✅ Memory cache initialized successfully');
+        logger.info('Memory cache initialized successfully');
+        
+        console.log('⏰ Starting scheduled jobs...');
+        scheduledJobService.start();
+        console.log('✅ Scheduled jobs initialized and started');
+        logger.info('Scheduled jobs initialized and started');
+        
+        console.log('🎉 All services initialized successfully!');
+      } catch (error) {
+        console.error('❌ Failed to initialize services:', error);
+        logger.error('Failed to initialize services:', error);
+        // Don't exit - server is still running for health checks
+      }
+    }
     
     // Graceful shutdown handling
     const shutdown = async (signal) => {
+      console.log(`📴 Received ${signal}. Starting graceful shutdown...`);
       logger.info(`Received ${signal}. Starting graceful shutdown...`);
       
       server.close(async () => {
+        console.log('🔌 HTTP server closed');
         logger.info('HTTP server closed');
         
         try {
@@ -230,9 +262,11 @@ async function initializeApp() {
           await memoryCache.quit();
           logger.info('Memory cache closed');
           
+          console.log('✅ Graceful shutdown completed');
           logger.info('Graceful shutdown completed');
           process.exit(0);
         } catch (error) {
+          console.error('❌ Error during shutdown:', error);
           logger.error('Error during shutdown:', error);
           process.exit(1);
         }
@@ -240,6 +274,7 @@ async function initializeApp() {
       
       // Force close after 30 seconds
       setTimeout(() => {
+        console.error('❌ Forced shutdown due to timeout');
         logger.error('Forced shutdown due to timeout');
         process.exit(1);
       }, 30000);
@@ -251,16 +286,19 @@ async function initializeApp() {
     
     // Handle uncaught exceptions
     process.on('uncaughtException', (error) => {
+      console.error('❌ Uncaught Exception:', error);
       logger.error('Uncaught Exception:', error);
       process.exit(1);
     });
     
     process.on('unhandledRejection', (reason, promise) => {
+      console.error('❌ Unhandled Rejection at:', promise, 'reason:', reason);
       logger.error('Unhandled Rejection at:', promise, 'reason:', reason);
       process.exit(1);
     });
     
   } catch (error) {
+    console.error('❌ Failed to initialize application:', error);
     logger.error('Failed to initialize application:', error);
     process.exit(1);
   }
