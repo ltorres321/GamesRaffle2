@@ -19,10 +19,11 @@
 5. Select branch: **`ltorres-1`**
 
 ### 3. Configure Build Settings
+**Note: Build settings are automatically configured via `netlify.toml`**
 ```
 Base directory: frontend
 Build command: npm run build
-Publish directory: frontend/out
+Publish directory: frontend/.next
 ```
 
 ### 4. Environment Variables
@@ -37,6 +38,13 @@ NEXT_TELEMETRY_DISABLED=1
 1. Click **"Deploy site"**
 2. Wait for build to complete (usually 2-3 minutes)
 3. Note your Netlify URL (will be something like: `https://amazing-app-123456.netlify.app`)
+
+## Build Configuration Fixed ✅
+The following deployment issues have been resolved:
+- ✅ **Static Export Conflicts**: Removed static export that conflicted with dynamic routes
+- ✅ **Dynamic Routes**: Fixed `/contests/[id]` and `/contests/[id]/picks` pages
+- ✅ **SSR Configuration**: Updated to use `@netlify/plugin-nextjs` for proper Next.js support
+- ✅ **Build Success**: Local build test passes successfully
 
 ## Post-Deployment Tasks
 
