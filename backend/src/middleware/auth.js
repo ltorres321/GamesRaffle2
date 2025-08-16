@@ -127,11 +127,11 @@ class AuthService {
         WHERE UserId = @userId
       `, { userId: decoded.userId });
 
-      if (!user.recordset[0]) {
+      if (!user.rows[0]) {
         throw createAuthenticationError('User not found', 'USER_NOT_FOUND');
       }
 
-      const userData = user.recordset[0];
+      const userData = user.rows[0];
 
       if (!userData.IsActive) {
         throw createAuthError('Account is deactivated', 'ACCOUNT_DEACTIVATED');
@@ -253,11 +253,11 @@ const authenticate = catchAsync(async (req, res, next) => {
     WHERE UserId = @userId
   `, { userId: decoded.userId });
 
-  if (!result.recordset[0]) {
+  if (!result.rows[0]) {
     throw createAuthenticationError('User not found');
   }
 
-  const user = result.recordset[0];
+  const user = result.rows[0];
 
   if (!user.IsActive) {
     throw createAuthError('Account is deactivated');
@@ -331,8 +331,8 @@ const optionalAuth = catchAsync(async (req, res, next) => {
         WHERE UserId = @userId AND IsActive = 1
       `, { userId: decoded.userId });
 
-      if (result.recordset[0]) {
-        const user = result.recordset[0];
+      if (result.rows[0]) {
+        const user = result.rows[0];
         req.user = {
           id: user.UserId,
           email: user.Email,
