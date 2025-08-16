@@ -252,8 +252,8 @@ router.post('/login', authRateLimit, catchAsync(async (req, res) => {
 
   // Update last login
   await database.query(`
-    UPDATE Users 
-    SET LastLoginAt = GETUTCDATE() 
+    UPDATE Users
+    SET LastLoginAt = NOW()
     WHERE UserId = @userId
   `, { userId: user.UserId });
 
@@ -471,8 +471,8 @@ router.put('/password', authenticate, catchAsync(async (req, res) => {
 
   // Update password
   await database.query(`
-    UPDATE Users 
-    SET PasswordHash = @passwordHash, UpdatedAt = GETUTCDATE()
+    UPDATE Users
+    SET PasswordHash = @passwordHash, UpdatedAt = NOW()
     WHERE UserId = @userId
   `, { userId, passwordHash: newPasswordHash });
 
@@ -498,10 +498,10 @@ router.post('/verify-email', catchAsync(async (req, res) => {
 
   // Find user with this verification token
   const result = await database.query(`
-    SELECT UserId, Email, EmailVerificationExpires 
-    FROM Users 
+    SELECT UserId, Email, EmailVerificationExpires
+    FROM Users
     WHERE EmailVerificationToken = @token
-      AND EmailVerificationExpires > GETUTCDATE()
+      AND EmailVerificationExpires > NOW()
       AND EmailVerified = 0
   `, { token });
 
@@ -515,11 +515,11 @@ router.post('/verify-email', catchAsync(async (req, res) => {
   await database.query(`
     UPDATE Users
     SET EmailVerified = 1,
-        EmailVerifiedAt = GETUTCDATE(),
+        EmailVerifiedAt = NOW(),
         EmailVerificationToken = NULL,
         EmailVerificationExpires = NULL,
         IsVerified = 1,
-        UpdatedAt = GETUTCDATE()
+        UpdatedAt = NOW()
     WHERE UserId = @userId
   `, { userId: user.UserId });
 
@@ -546,10 +546,10 @@ router.post('/verify-phone', catchAsync(async (req, res) => {
 
   // Find user with this verification code
   const result = await database.query(`
-    SELECT UserId, PhoneNumber, PhoneVerificationExpires 
-    FROM Users 
+    SELECT UserId, PhoneNumber, PhoneVerificationExpires
+    FROM Users
     WHERE PhoneVerificationCode = @code
-      AND PhoneVerificationExpires > GETUTCDATE()
+      AND PhoneVerificationExpires > NOW()
       AND PhoneVerified = 0
   `, { code });
 
@@ -563,11 +563,11 @@ router.post('/verify-phone', catchAsync(async (req, res) => {
   await database.query(`
     UPDATE Users
     SET PhoneVerified = 1,
-        PhoneVerifiedAt = GETUTCDATE(),
+        PhoneVerifiedAt = NOW(),
         PhoneVerificationCode = NULL,
         PhoneVerificationExpires = NULL,
         IsVerified = 1,
-        UpdatedAt = GETUTCDATE()
+        UpdatedAt = NOW()
     WHERE UserId = @userId
   `, { userId: user.UserId });
 
@@ -618,10 +618,10 @@ router.post('/resend-email-verification', authenticate, catchAsync(async (req, r
 
   // Update user with new token
   await database.query(`
-    UPDATE Users 
+    UPDATE Users
     SET EmailVerificationToken = @token,
         EmailVerificationExpires = @expires,
-        UpdatedAt = GETUTCDATE()
+        UpdatedAt = NOW()
     WHERE UserId = @userId
   `, { userId, token: emailVerificationToken, expires: emailExpires });
 
@@ -667,10 +667,10 @@ router.post('/resend-sms-verification', authenticate, catchAsync(async (req, res
 
   // Update user with new code
   await database.query(`
-    UPDATE Users 
+    UPDATE Users
     SET PhoneVerificationCode = @code,
         PhoneVerificationExpires = @expires,
-        UpdatedAt = GETUTCDATE()
+        UpdatedAt = NOW()
     WHERE UserId = @userId
   `, { userId, code: phoneVerificationCode, expires: phoneExpires });
 
