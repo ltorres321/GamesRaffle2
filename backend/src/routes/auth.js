@@ -92,7 +92,7 @@ router.post('/register', authRateLimit, catchAsync(async (req, res) => {
     WHERE Email = @email OR Username = @username
   `, { email, username });
 
-  if (existingUser.recordset.length > 0) {
+  if (existingUser.rows.length > 0) {
     throw createValidationError('user', 'User with this email or username already exists');
   }
 
@@ -216,11 +216,11 @@ router.post('/login', authRateLimit, catchAsync(async (req, res) => {
     WHERE Email = @email
   `, { email });
 
-  if (!result.recordset[0]) {
+  if (!result.rows[0]) {
     throw createAuthenticationError('Invalid email or password', 'INVALID_CREDENTIALS');
   }
 
-  const user = result.recordset[0];
+  const user = result.rows[0];
 
   // Check if user is active
   if (!user.IsActive) {
@@ -372,11 +372,11 @@ router.get('/me', authenticate, catchAsync(async (req, res) => {
     WHERE u.UserId = @userId
   `, { userId });
 
-  if (!result.recordset[0]) {
+  if (!result.rows[0]) {
     throw createNotFoundError('User', userId);
   }
 
-  const user = result.recordset[0];
+  const user = result.rows[0];
 
   res.json({
     success: true,
@@ -452,14 +452,14 @@ router.put('/password', authenticate, catchAsync(async (req, res) => {
     SELECT PasswordHash FROM Users WHERE UserId = @userId
   `, { userId });
 
-  if (!result.recordset[0]) {
+  if (!result.rows[0]) {
     throw createNotFoundError('User', userId);
   }
 
   // Verify current password
   const isValidPassword = await authService.comparePassword(
-    currentPassword, 
-    result.recordset[0].PasswordHash
+    currentPassword,
+    result.rows[0].PasswordHash
   );
   
   if (!isValidPassword) {
@@ -505,11 +505,11 @@ router.post('/verify-email', catchAsync(async (req, res) => {
       AND EmailVerified = 0
   `, { token });
 
-  if (!result.recordset[0]) {
+  if (!result.rows[0]) {
     throw createValidationError('token', 'Invalid or expired verification token');
   }
 
-  const user = result.recordset[0];
+  const user = result.rows[0];
 
   // Mark email as verified and user as partially verified
   await database.query(`
@@ -553,11 +553,11 @@ router.post('/verify-phone', catchAsync(async (req, res) => {
       AND PhoneVerified = 0
   `, { code });
 
-  if (!result.recordset[0]) {
+  if (!result.rows[0]) {
     throw createValidationError('code', 'Invalid or expired verification code');
   }
 
-  const user = result.recordset[0];
+  const user = result.rows[0];
 
   // Mark phone as verified and user as verified (single verification is sufficient)
   await database.query(`
@@ -576,7 +576,7 @@ router.post('/verify-phone', catchAsync(async (req, res) => {
     SELECT EmailVerified, PhoneVerified FROM Users WHERE UserId = @userId
   `, { userId: user.UserId });
 
-  const userVerification = userStatus.recordset[0];
+  const userVerification = userStatus.rows[0];
   const fullyVerified = userVerification.EmailVerified && userVerification.PhoneVerified;
 
   // Log verification
@@ -602,11 +602,11 @@ router.post('/resend-email-verification', authenticate, catchAsync(async (req, r
     SELECT Email, EmailVerified FROM Users WHERE UserId = @userId
   `, { userId });
 
-  if (!userResult.recordset[0]) {
+  if (!userResult.rows[0]) {
     throw createNotFoundError('User', userId);
   }
 
-  const user = userResult.recordset[0];
+  const user = userResult.rows[0];
   if (user.EmailVerified) {
     throw createValidationError('verification', 'Email is already verified');
   }
@@ -651,11 +651,11 @@ router.post('/resend-sms-verification', authenticate, catchAsync(async (req, res
     SELECT PhoneNumber, PhoneVerified FROM Users WHERE UserId = @userId
   `, { userId });
 
-  if (!userResult.recordset[0]) {
+  if (!userResult.rows[0]) {
     throw createNotFoundError('User', userId);
   }
 
-  const user = userResult.recordset[0];
+  const user = userResult.rows[0];
   if (user.PhoneVerified) {
     throw createValidationError('verification', 'Phone number is already verified');
   }
