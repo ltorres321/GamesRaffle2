@@ -124,7 +124,7 @@ router.post('/register', authRateLimit, catchAsync(async (req, res) => {
       @dateOfBirth, @phoneNumber, @streetAddress, @city, @state, @zipCode, @country,
       @emailVerificationToken, @emailExpires,
       @phoneVerificationCode, @phoneExpires,
-      'Player', 0, 0, 0, 1
+      'Player', false, false, false, true
     )
   `, {
     userId, username, email, passwordHash, firstName, lastName,
@@ -514,11 +514,11 @@ router.post('/verify-email', catchAsync(async (req, res) => {
   // Mark email as verified and user as partially verified
   await database.query(`
     UPDATE Users
-    SET EmailVerified = 1,
+    SET EmailVerified = true,
         EmailVerifiedAt = NOW(),
         EmailVerificationToken = NULL,
         EmailVerificationExpires = NULL,
-        IsVerified = 1,
+        IsVerified = true,
         UpdatedAt = NOW()
     WHERE UserId = @userId
   `, { userId: user.UserId });
@@ -562,11 +562,11 @@ router.post('/verify-phone', catchAsync(async (req, res) => {
   // Mark phone as verified and user as verified (single verification is sufficient)
   await database.query(`
     UPDATE Users
-    SET PhoneVerified = 1,
+    SET PhoneVerified = true,
         PhoneVerifiedAt = NOW(),
         PhoneVerificationCode = NULL,
         PhoneVerificationExpires = NULL,
-        IsVerified = 1,
+        IsVerified = true,
         UpdatedAt = NOW()
     WHERE UserId = @userId
   `, { userId: user.UserId });
