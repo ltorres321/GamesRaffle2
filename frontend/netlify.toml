@@ -1,0 +1,28 @@
+[build]
+  base = "frontend"
+  command = "npm run build"
+  publish = "out"
+
+[build.environment]
+  NODE_ENV = "production"
+  NEXT_TELEMETRY_DISABLED = "1"
+  NEXT_PUBLIC_API_URL = "https://gamesraffle2.onrender.com"
+
+# Handle Next.js App Router static export
+[[redirects]]
+  from = "/_next/*"
+  to = "/_next/:splat"
+  status = 200
+  headers = {Cache-Control = "public, max-age=31536000, immutable"}
+
+# Handle client-side routing for Next.js App Router
+[[redirects]]
+  from = "/*"
+  to = "/404.html"
+  status = 404
+
+# SPA fallback for App Router
+[[redirects]]
+  from = "/*"
+  to = "/index.html"
+  status = 200
