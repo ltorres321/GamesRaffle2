@@ -1,25 +1,12 @@
 [build]
   base = "frontend"
   command = "npm run build"
-  publish = ".next"
 
 [build.environment]
   NODE_ENV = "production"
   NEXT_TELEMETRY_DISABLED = "1"
   NEXT_PUBLIC_API_URL = "https://gamesraffle2.onrender.com"
 
-# Netlify Next.js plugin for SSR
+# Netlify Next.js plugin handles deployment automatically
 [[plugins]]
   package = "@netlify/plugin-nextjs"
-
-# Handle Next.js routing
-[[redirects]]
-  from = "/_next/*"
-  to = "/_next/:splat"
-  status = 200
-
-# SPA fallback for client-side routing
-[[redirects]]
-  from = "/*"
-  to = "/index.html"
-  status = 200
