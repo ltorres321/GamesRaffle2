@@ -1,27 +1,24 @@
 [build]
   base = "frontend"
   command = "npm run build"
-  publish = "out"
+  publish = ".next"
 
 [build.environment]
   NODE_ENV = "production"
   NEXT_TELEMETRY_DISABLED = "1"
   NEXT_PUBLIC_API_URL = "https://gamesraffle2.onrender.com"
 
-# Handle Next.js App Router static export
+# Netlify Next.js plugin for SSR
+[[plugins]]
+  package = "@netlify/plugin-nextjs"
+
+# Handle Next.js routing
 [[redirects]]
   from = "/_next/*"
   to = "/_next/:splat"
   status = 200
-  headers = {Cache-Control = "public, max-age=31536000, immutable"}
 
-# Handle client-side routing for Next.js App Router
-[[redirects]]
-  from = "/*"
-  to = "/404.html"
-  status = 404
-
-# SPA fallback for App Router
+# SPA fallback for client-side routing
 [[redirects]]
   from = "/*"
   to = "/index.html"
