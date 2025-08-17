@@ -193,7 +193,7 @@ export default function WeeklyPicks() {
 
   const formatGameTime = (scheduledTime: string) => {
     const date = new Date(scheduledTime)
-    return date.toLocaleDateString('en-US', {
+    return date.toLocaleString('en-US', {
       weekday: 'short',
       year: 'numeric',
       month: 'short',

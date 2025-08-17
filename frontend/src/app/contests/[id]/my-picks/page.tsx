@@ -180,7 +180,7 @@ export default function MyPicks() {
 
   const formatGameDate = (dateString: string) => {
     const date = new Date(dateString)
-    return date.toLocaleDateString('en-US', {
+    return date.toLocaleString('en-US', {
       weekday: 'short',
       year: 'numeric',
       month: 'short',
