@@ -1,8 +1,13 @@
 // Auto-detect the correct backend URL based on environment
 function getBackendURL(): string {
-  // For production (deployed to Netlify with Render backend)
+  // Check for explicit API URL override first (allows per-environment configuration)
+  if (process.env.NEXT_PUBLIC_API_URL) {
+    return process.env.NEXT_PUBLIC_API_URL;
+  }
+
+  // For production deployment (main branch)
   if (process.env.NODE_ENV === 'production') {
-    return process.env.NEXT_PUBLIC_API_URL || 'https://gamesraffle2.onrender.com';
+    return 'https://gamesraffle2.onrender.com';
   }
 
   // For GitHub Codespaces - Auto-detect the URL
