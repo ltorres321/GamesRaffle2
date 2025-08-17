@@ -137,6 +137,52 @@ router.get('/admin/test-arango', authenticate, async (req, res) => {
 });
 
 /**
+ * TEMPORARY: Test ArangoDB connection without authentication
+ * GET /api/survivor/temp-test-arango
+ */
+router.get('/temp-test-arango', async (req, res) => {
+    try {
+        const result = await nfl2024DataService.testArangoConnection();
+        
+        res.json({
+            success: result.success,
+            message: result.success ? 'ArangoDB connection successful' : 'ArangoDB connection failed',
+            data: result
+        });
+
+    } catch (error) {
+        logger.error('Test ArangoDB connection error:', error);
+        res.status(500).json({
+            success: false,
+            message: error.message
+        });
+    }
+});
+
+/**
+ * TEMPORARY: Load ArangoDB data without authentication
+ * POST /api/survivor/temp-load-arango
+ */
+router.post('/temp-load-arango', async (req, res) => {
+    try {
+        const result = await nfl2024DataService.loadFromArangoDB();
+        
+        res.json({
+            success: true,
+            message: 'ArangoDB data loaded successfully',
+            data: result
+        });
+
+    } catch (error) {
+        logger.error('Load ArangoDB data error:', error);
+        res.status(500).json({
+            success: false,
+            message: error.message
+        });
+    }
+});
+
+/**
  * Get NFL games for a specific week from ArangoDB
  * GET /api/survivor/admin/arango/week/:week
  */
