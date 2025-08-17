@@ -15,7 +15,7 @@ const { errorHandler } = require('./middleware/errorHandler');
 const notFound = require('./middleware/notFound');
 
 // Import routes
-const authRoutes = require('./routes/auth-minimal');
+const authRoutes = require('./routes/auth-rebuild');
 const userRoutes = require('./routes/users');
 const gameRoutes = require('./routes/games');
 const pickRoutes = require('./routes/picks');
