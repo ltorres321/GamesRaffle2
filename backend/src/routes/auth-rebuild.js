@@ -370,7 +370,24 @@ router.post('/register', async (req, res) => {
     const newUserId = result.rows[0].userid;
     console.log('✅ User created successfully with ID:', newUserId);
 
-    console.log('📤 Sending success response...');
+    // Generate JWT tokens for immediate authentication
+    console.log('🔐 Generating authentication tokens...');
+    const jwt = require('jsonwebtoken');
+    
+    const tokenPayload = {
+      userId: newUserId,
+      username,
+      email,
+      role: 'user'
+    };
+
+    const accessToken = jwt.sign(tokenPayload, process.env.JWT_SECRET, { expiresIn: '15m' });
+    const refreshToken = jwt.sign(tokenPayload, process.env.JWT_SECRET, { expiresIn: '30d' });
+    const sessionId = crypto.randomUUID();
+
+    console.log('✅ Tokens generated successfully');
+
+    console.log('📤 Sending success response with tokens...');
     res.status(201).json({
       success: true,
       message: 'User registered successfully',
@@ -382,12 +399,20 @@ router.post('/register', async (req, res) => {
           firstName,
           lastName,
           role: 'user',
-          isActive: true
+          isActive: true,
+          emailVerified: false,
+          phoneVerified: false,
+          isVerified: false
+        },
+        tokens: {
+          accessToken,
+          refreshToken,
+          sessionId
         }
       },
       requestId
     });
-    console.log('✅ Response sent successfully');
+    console.log('✅ Response sent successfully with tokens');
 
   } catch (error) {
     console.error('❌ Auth-rebuild registration error:', error);
