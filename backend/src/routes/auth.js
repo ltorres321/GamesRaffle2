@@ -131,27 +131,29 @@ router.post('/register', authRateLimit, catchAsync(async (req, res) => {
   // Get the generated user ID
   const newUserId = result.rows[0].id;
 
-  // Send email verification
-  try {
-    await emailService.sendVerificationEmail(email, emailVerificationToken, firstName);
-    logger.logBusinessEvent('email_verification_sent', {
-      userId, email, token: emailVerificationToken
-    }, userId);
-  } catch (error) {
-    logger.error('Failed to send verification email:', error);
-    // Continue registration even if email fails
-  }
+  // Send email verification (temporarily disabled for debugging)
+  // try {
+  //   await emailService.sendVerificationEmail(email, emailVerificationToken, firstName);
+  //   logger.logBusinessEvent('email_verification_sent', {
+  //     userId, email, token: emailVerificationToken
+  //   }, userId);
+  // } catch (error) {
+  //   logger.error('Failed to send verification email:', error);
+  //   // Continue registration even if email fails
+  // }
 
-  // Send SMS verification
-  try {
-    await smsService.sendVerificationSMS(phoneNumber, phoneVerificationCode, firstName);
-    logger.logBusinessEvent('sms_verification_sent', {
-      userId, phoneNumber, code: phoneVerificationCode
-    }, userId);
-  } catch (error) {
-    logger.error('Failed to send verification SMS:', error);
-    // Continue registration even if SMS fails
-  }
+  // Send SMS verification (temporarily disabled for debugging)
+  // try {
+  //   await smsService.sendVerificationSMS(phoneNumber, phoneVerificationCode, firstName);
+  //   logger.logBusinessEvent('sms_verification_sent', {
+  //     userId, phoneNumber, code: phoneVerificationCode
+  //   }, userId);
+  // } catch (error) {
+  //   logger.error('Failed to send verification SMS:', error);
+  //   // Continue registration even if SMS fails
+  // }
+
+  console.log('✅ Database INSERT completed, user ID:', newUserId);
 
   // Generate tokens (user can login but features are limited until verified)
   const { accessToken, refreshToken, refreshPayload } = authService.generateTokens(newUserId, email, 'user');
