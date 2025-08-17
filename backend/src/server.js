@@ -23,6 +23,7 @@ const teamRoutes = require('./routes/teams');
 const scheduleRoutes = require('./routes/schedule');
 const adminRoutes = require('./routes/admin');
 const uploadRoutes = require('./routes/upload');
+const cleanupRoutes = require('./routes/cleanup');
 
 const app = express();
 
@@ -148,6 +149,7 @@ app.use('/api/teams', teamRoutes);
 app.use('/api/schedule', scheduleRoutes);
 app.use('/api/admin', adminRoutes);
 app.use('/api/upload', uploadRoutes);
+app.use('/api/cleanup', cleanupRoutes);
 
 // Root endpoint
 app.get('/', (req, res) => {
