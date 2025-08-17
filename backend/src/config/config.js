@@ -13,7 +13,7 @@ const config = {
   },
   
   database: {
-    connectionString: process.env.SQL_CONNECTION_STRING,
+    connectionString: process.env.DATABASE_URL || process.env.SQL_CONNECTION_STRING,
     pool: {
       max: parseInt(process.env.DB_POOL_MAX) || 10,
       min: parseInt(process.env.DB_POOL_MIN) || 0,
@@ -205,10 +205,14 @@ const config = {
 // Validation
 function validateConfig() {
   const required = [
-    'SQL_CONNECTION_STRING',
     'JWT_SECRET',
     'SESSION_SECRET'
   ];
+  
+  // Check if we have either DATABASE_URL or SQL_CONNECTION_STRING
+  if (!process.env.DATABASE_URL && !process.env.SQL_CONNECTION_STRING) {
+    throw new Error('Missing required environment variable: DATABASE_URL or SQL_CONNECTION_STRING');
+  }
   
   // Only require Redis if explicitly using Redis (not memory cache fallback)
   if (process.env.USE_REDIS === 'true' || (process.env.NODE_ENV === 'production' && process.env.USE_MEMORY_CACHE !== 'true')) {

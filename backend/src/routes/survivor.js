@@ -2,7 +2,7 @@ const express = require('express');
 const router = express.Router();
 const nfl2024DataService = require('../services/nfl2024DataService');
 const survivorGameService = require('../services/survivorGameService');
-const auth = require('../middleware/auth');
+const { authenticate } = require('../middleware/auth');
 const logger = require('../utils/logger');
 
 /**
@@ -17,7 +17,7 @@ const logger = require('../utils/logger');
  * Load 2024 NFL season data
  * POST /api/survivor/admin/load-2024-data
  */
-router.post('/admin/load-2024-data', auth, async (req, res) => {
+router.post('/admin/load-2024-data', authenticate, async (req, res) => {
     try {
         // Check if user is admin
         if (req.user.role !== 'Admin' && req.user.role !== 'SuperAdmin') {
@@ -48,7 +48,7 @@ router.post('/admin/load-2024-data', auth, async (req, res) => {
  * Get database statistics
  * GET /api/survivor/admin/stats
  */
-router.get('/admin/stats', auth, async (req, res) => {
+router.get('/admin/stats', authenticate, async (req, res) => {
     try {
         // Check if user is admin
         if (req.user.role !== 'Admin' && req.user.role !== 'SuperAdmin') {
@@ -78,7 +78,7 @@ router.get('/admin/stats', auth, async (req, res) => {
  * Process weekly results (batch job)
  * POST /api/survivor/admin/process-week/:gameId/:week
  */
-router.post('/admin/process-week/:gameId/:week', auth, async (req, res) => {
+router.post('/admin/process-week/:gameId/:week', authenticate, async (req, res) => {
     try {
         // Check if user is admin
         if (req.user.role !== 'Admin' && req.user.role !== 'SuperAdmin') {
@@ -114,7 +114,7 @@ router.post('/admin/process-week/:gameId/:week', auth, async (req, res) => {
  * Create a new survivor game
  * POST /api/survivor/games
  */
-router.post('/games', auth, async (req, res) => {
+router.post('/games', authenticate, async (req, res) => {
     try {
         const gameData = {
             gameName: req.body.gameName,
@@ -172,7 +172,7 @@ router.get('/games/:gameId', async (req, res) => {
  * Join a survivor game
  * POST /api/survivor/games/:gameId/join
  */
-router.post('/games/:gameId/join', auth, async (req, res) => {
+router.post('/games/:gameId/join', authenticate, async (req, res) => {
     try {
         const { gameId } = req.params;
         const result = await survivorGameService.joinSurvivorGame(gameId, req.user.userId);
@@ -277,7 +277,7 @@ router.get('/nfl/teams', async (req, res) => {
  * Submit a pick
  * POST /api/survivor/picks
  */
-router.post('/picks', auth, async (req, res) => {
+router.post('/picks', authenticate, async (req, res) => {
     try {
         const {
             gameId,        // Survivor game ID
@@ -322,7 +322,7 @@ router.post('/picks', auth, async (req, res) => {
  * Get player's picks for a survivor game
  * GET /api/survivor/picks/:gameId?season=2024
  */
-router.get('/picks/:gameId', auth, async (req, res) => {
+router.get('/picks/:gameId', authenticate, async (req, res) => {
     try {
         const { gameId } = req.params;
         const season = req.query.season || 2024;
@@ -347,7 +347,7 @@ router.get('/picks/:gameId', auth, async (req, res) => {
  * Get available teams for pick (teams not yet used by player)
  * GET /api/survivor/picks/:gameId/available-teams?season=2024
  */
-router.get('/picks/:gameId/available-teams', auth, async (req, res) => {
+router.get('/picks/:gameId/available-teams', authenticate, async (req, res) => {
     try {
         const { gameId } = req.params;
         const season = req.query.season || 2024;
@@ -483,7 +483,7 @@ router.get('/games/:gameId/leaderboard', async (req, res) => {
  * Get player's game status
  * GET /api/survivor/games/:gameId/my-status
  */
-router.get('/games/:gameId/my-status', auth, async (req, res) => {
+router.get('/games/:gameId/my-status', authenticate, async (req, res) => {
     try {
         const { gameId } = req.params;
 
