@@ -143,17 +143,22 @@ router.post('/register', async (req, res) => {
       console.log('⚠️ Schema check failed:', schemaError.message);
     }
 
-    // Simplified insert without complex fields
-    console.log('💾 Creating user with minimal data...');
+    // Insert with correct PostgreSQL schema column names
+    console.log('💾 Creating user with correct column names...');
     const result = await database.query(`
       INSERT INTO users (
-        username, email, password_hash, first_name, last_name, role, is_active
+        username, email, passwordhash, firstname, lastname,
+        dateofbirth, phonenumber, streetaddress, city, state, zipcode, country,
+        role, emailverified, phoneverified, isverified, isactive
       ) VALUES (
-        @username, @email, @passwordHash, @firstName, @lastName, 'user', true
+        @username, @email, @passwordHash, @firstName, @lastName,
+        @dateOfBirth, @phoneNumber, @streetAddress, @city, @state, @zipCode, @country,
+        'user', false, false, false, true
       )
       RETURNING id
     `, {
-      username, email, passwordHash, firstName, lastName
+      username, email, passwordHash, firstName, lastName,
+      dateOfBirth, phoneNumber, streetAddress, city, state, zipCode, country
     });
 
     const newUserId = result.rows[0].id;
