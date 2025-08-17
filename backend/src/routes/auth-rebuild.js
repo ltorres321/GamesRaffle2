@@ -6,6 +6,40 @@ const router = express.Router();
 
 console.log('🔧 Auth-rebuild: Starting module load');
 
+// Test users table structure
+router.post('/test-users-table', async (req, res) => {
+  try {
+    console.log('🧪 Testing users table structure...');
+    
+    // Check table structure
+    const tableInfo = await database.query(`
+      SELECT column_name, data_type, is_nullable, column_default
+      FROM information_schema.columns
+      WHERE table_name = 'users'
+      ORDER BY ordinal_position
+    `);
+    console.log('📋 Users table structure:', tableInfo.rows);
+    
+    // Test if table exists and has data
+    const countQuery = await database.query('SELECT COUNT(*) as total FROM users');
+    console.log('📊 Current user count:', countQuery.rows[0].total);
+    
+    res.status(200).json({
+      success: true,
+      message: 'Users table test successful',
+      tableStructure: tableInfo.rows,
+      userCount: countQuery.rows[0].total
+    });
+  } catch (error) {
+    console.error('❌ Users table test error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Users table test failed',
+      error: error.message
+    });
+  }
+});
+
 // Simple database test endpoint
 router.post('/test-db', async (req, res) => {
   try {
