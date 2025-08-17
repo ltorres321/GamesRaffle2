@@ -740,5 +740,130 @@ router.post('/logout', async (req, res) => {
   }
 });
 
+// POST /api/auth/verify-email - Verify email with code
+router.post('/verify-email', async (req, res) => {
+  try {
+    console.log('📧 Email verification request');
+    
+    const { token } = req.body;
+
+    if (!token) {
+      return res.status(400).json({
+        success: false,
+        message: 'Verification token required'
+      });
+    }
+
+    // For development: accept "test123" as valid code for any user
+    if (token === 'test123') {
+      return res.status(200).json({
+        success: true,
+        message: 'Email verified successfully',
+        data: {
+          isVerified: true,
+          canAccessSite: true
+        }
+      });
+    }
+
+    // TODO: Implement real email verification lookup
+    // For now, return error for invalid codes
+    res.status(400).json({
+      success: false,
+      message: 'Invalid verification code'
+    });
+
+  } catch (error) {
+    console.error('❌ Email verification error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Email verification failed'
+    });
+  }
+});
+
+// POST /api/auth/verify-phone - Verify phone with code
+router.post('/verify-phone', async (req, res) => {
+  try {
+    console.log('📱 Phone verification request');
+    
+    const { code } = req.body;
+
+    if (!code) {
+      return res.status(400).json({
+        success: false,
+        message: 'Verification code required'
+      });
+    }
+
+    // For development: accept "123456" as valid code for any user
+    if (code === '123456') {
+      return res.status(200).json({
+        success: true,
+        message: 'Phone verified successfully',
+        data: {
+          isVerified: true,
+          canAccessSite: true,
+          fullyVerified: true
+        }
+      });
+    }
+
+    // TODO: Implement real SMS verification lookup
+    // For now, return error for invalid codes
+    res.status(400).json({
+      success: false,
+      message: 'Invalid verification code'
+    });
+
+  } catch (error) {
+    console.error('❌ Phone verification error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Phone verification failed'
+    });
+  }
+});
+
+// POST /api/auth/resend-email-verification - Resend email verification
+router.post('/resend-email-verification', async (req, res) => {
+  try {
+    console.log('🔄 Resend email verification request');
+    
+    // For development: simulate email sent
+    res.status(200).json({
+      success: true,
+      message: 'Verification email sent (Development: use code "test123")'
+    });
+
+  } catch (error) {
+    console.error('❌ Resend email verification error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to resend verification email'
+    });
+  }
+});
+
+// POST /api/auth/resend-sms-verification - Resend SMS verification
+router.post('/resend-sms-verification', async (req, res) => {
+  try {
+    console.log('🔄 Resend SMS verification request');
+    
+    // For development: simulate SMS sent
+    res.status(200).json({
+      success: true,
+      message: 'Verification SMS sent (Development: use code "123456")'
+    });
+
+  } catch (error) {
+    console.error('❌ Resend SMS verification error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to resend verification SMS'
+    });
+  }
+});
+
 console.log('✅ Auth-rebuild: Module loaded successfully');
 module.exports = router;
