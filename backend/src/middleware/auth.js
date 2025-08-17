@@ -124,8 +124,8 @@ class AuthService {
       const user = await database.query(`
         SELECT id, email, role, is_active
         FROM users
-        WHERE id = @userId
-      `, { userId: decoded.userId });
+        WHERE id = $1
+      `, [decoded.userId]);
 
       if (!user.rows[0]) {
         throw createAuthenticationError('User not found', 'USER_NOT_FOUND');
@@ -247,8 +247,8 @@ const authenticate = catchAsync(async (req, res, next) => {
   const result = await database.query(`
     SELECT id, email, username, first_name, last_name, role, is_verified, is_active
     FROM users
-    WHERE id = @userId
-  `, { userId: decoded.userId });
+    WHERE id = $1
+  `, [decoded.userId]);
 
   if (!result.rows[0]) {
     throw createAuthenticationError('User not found');
@@ -263,6 +263,7 @@ const authenticate = catchAsync(async (req, res, next) => {
   // Attach user to request
   req.user = {
     id: user.id,
+    userId: user.id,  // Add userId for compatibility with survivor routes
     email: user.email,
     username: user.username,
     firstName: user.first_name,
@@ -325,13 +326,14 @@ const optionalAuth = catchAsync(async (req, res, next) => {
       const result = await database.query(`
         SELECT id, email, username, first_name, last_name, role, is_verified, is_active
         FROM users
-        WHERE id = @userId AND is_active = true
-      `, { userId: decoded.userId });
+        WHERE id = $1 AND is_active = true
+      `, [decoded.userId]);
 
       if (result.rows[0]) {
         const user = result.rows[0];
         req.user = {
           id: user.id,
+          userId: user.id,  // Add userId for compatibility with survivor routes
           email: user.email,
           username: user.username,
           firstName: user.first_name,

@@ -204,6 +204,8 @@ async function initializeApp() {
     console.log(`🌐 Attempting to bind to ${host}:${port}`);
     console.log(`📊 Environment: ${config.app.env}`);
     console.log(`🔧 Process ENV PORT: ${process.env.PORT}`);
+    console.log(`🔧 DATABASE_URL: ${process.env.DATABASE_URL ? 'SET' : 'NOT SET'}`);
+    console.log(`🔧 SQL_CONNECTION_STRING: ${process.env.SQL_CONNECTION_STRING ? 'SET' : 'NOT SET'}`);
     
     const server = app.listen(port, host, () => {
       console.log(`✅ Server running on ${host}:${port} in ${config.app.env} mode`);
@@ -211,8 +213,8 @@ async function initializeApp() {
       logger.info(`Health check available at: http://${host}:${port}/health`);
       logger.info(`API documentation at: http://${host}:${port}/api/docs`);
       
-      // Initialize other services AFTER server is listening
-      initializeServices();
+      // Initialize other services AFTER server is listening (non-blocking)
+      setImmediate(initializeServices);
     });
     
     server.on('error', (err) => {
@@ -223,28 +225,43 @@ async function initializeApp() {
     
     // Initialize other services after server is listening
     async function initializeServices() {
+      console.log('🔌 Initializing services...');
+      
+      // Database initialization with graceful fallback
       try {
-        console.log('🔌 Initializing database connection...');
+        console.log('🔌 Attempting database connection...');
         await database.initialize();
         console.log('✅ Database connected successfully');
         logger.info('Database connected successfully');
-        
+      } catch (error) {
+        console.error('⚠️  Database initialization failed:', error.message);
+        logger.error('Database initialization failed:', error);
+        console.log('🔄 Server will continue running without database (some features disabled)');
+      }
+      
+      // Memory cache initialization
+      try {
         console.log('💾 Initializing memory cache...');
         await memoryCache.connect();
         console.log('✅ Memory cache initialized successfully');
         logger.info('Memory cache initialized successfully');
-        
+      } catch (error) {
+        console.error('⚠️  Memory cache initialization failed:', error.message);
+        logger.error('Memory cache initialization failed:', error);
+      }
+      
+      // Scheduled jobs initialization
+      try {
         console.log('⏰ Starting scheduled jobs...');
         scheduledJobService.start();
         console.log('✅ Scheduled jobs initialized and started');
         logger.info('Scheduled jobs initialized and started');
-        
-        console.log('🎉 All services initialized successfully!');
       } catch (error) {
-        console.error('❌ Failed to initialize services:', error);
-        logger.error('Failed to initialize services:', error);
-        // Don't exit - server is still running for health checks
+        console.error('⚠️  Scheduled jobs initialization failed:', error.message);
+        logger.error('Scheduled jobs initialization failed:', error);
       }
+      
+      console.log('🎉 Server startup completed!');
     }
     
     // Graceful shutdown handling
