@@ -183,6 +183,76 @@ router.post('/temp-load-arango', async (req, res) => {
 });
 
 /**
+ * TEMPORARY: Explore ArangoDB pff_games data structure
+ * GET /api/survivor/temp-explore-arango
+ */
+router.get('/temp-explore-arango', async (req, res) => {
+    try {
+        const arangoDbService = require('../services/arangoDbService');
+        
+        // Get sample games from pff_games to understand structure
+        const sampleGames = await arangoDbService.explorePffGamesSchema();
+        
+        res.json({
+            success: true,
+            message: 'ArangoDB pff_games exploration successful',
+            data: {
+                sampleGames: sampleGames,
+                totalSamples: sampleGames.length
+            }
+        });
+
+    } catch (error) {
+        logger.error('Explore ArangoDB data error:', error);
+        res.status(500).json({
+            success: false,
+            message: error.message
+        });
+    }
+});
+
+/**
+ * TEMPORARY: Get raw ArangoDB game count by season
+ * GET /api/survivor/temp-arango-seasons
+ */
+router.get('/temp-arango-seasons', async (req, res) => {
+    try {
+        const arangoDbService = require('../services/arangoDbService');
+        
+        if (!arangoDbService.isConnected()) {
+            await arangoDbService.connect();
+        }
+
+        // Query seasons and counts
+        const cursor = await arangoDbService.db.query(`
+            FOR game IN pff_games
+            FILTER game.league_id == 1
+            COLLECT season = game.season WITH COUNT INTO total
+            SORT season DESC
+            RETURN { season, total }
+        `);
+
+        const seasonData = await cursor.all();
+        
+        res.json({
+            success: true,
+            message: 'Season data retrieved successfully',
+            data: {
+                seasons: seasonData,
+                totalSeasons: seasonData.length
+            }
+        });
+
+    } catch (error) {
+        logger.error('Get ArangoDB seasons error:', error);
+        res.status(500).json({
+            success: false,
+            message: error.message
+        });
+    }
+});
+
+/**
  * Get NFL games for a specific week from ArangoDB
  * GET /api/survivor/admin/arango/week/:week
  */
