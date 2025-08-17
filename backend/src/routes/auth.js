@@ -1,6 +1,7 @@
 const express = require('express');
 const Joi = require('joi');
 const { v4: uuidv4 } = require('uuid');
+const crypto = require('crypto');
 const database = require('../config/database');
 const { authService, authRateLimit, authenticate, optionalAuth } = require('../middleware/auth');
 const logger = require('../utils/logger');
@@ -67,37 +68,70 @@ const generateSMSCode = () => {
   return Math.floor(100000 + Math.random() * 900000).toString(); // 6-digit code
 };
 
+// Simple test endpoint first
+router.post('/test-register', async (req, res) => {
+  console.log('🚀 Test endpoint hit');
+  res.status(200).json({
+    success: true,
+    message: 'Test endpoint working',
+    timestamp: new Date().toISOString()
+  });
+});
+
 // Register new user
-router.post('/register', authRateLimit, catchAsync(async (req, res) => {
-  // Validate input
-  const { error, value } = registerSchema.validate(req.body);
+router.post('/register', async (req, res) => {
+  try {
+    console.log('🚀 Registration endpoint hit');
+    console.log('📝 Request body keys:', Object.keys(req.body));
+    
+    // Validate input
+    console.log('🔍 Starting JOI validation...');
+    const { error, value } = registerSchema.validate(req.body);
   if (error) {
+    console.log('❌ JOI validation failed:', error.details[0].message);
     throw createValidationError('registration', error.details[0].message);
   }
+
+  console.log('✅ JOI validation passed');
 
   const {
     username, email, password, firstName, lastName, dateOfBirth, phoneNumber,
     streetAddress, city, state, zipCode, country
   } = value;
 
+  console.log('✅ Request data extracted');
+
   // Validate age requirement (21+)
+  console.log('🔍 Validating age...');
   const age = validateAge(dateOfBirth);
+  console.log('🎂 Calculated age:', age);
   if (age < 21) {
+    console.log('❌ Age validation failed');
     throw createValidationError('age', 'You must be at least 21 years old to register');
   }
 
+  console.log('✅ Age validation passed');
+
   // Check if user already exists
+  console.log('🔍 Checking for existing user...');
   const existingUser = await database.query(`
     SELECT id FROM users
     WHERE email = @email OR username = @username
   `, { email, username });
 
+  console.log('✅ Database query completed, found:', existingUser.rows.length, 'users');
+
   if (existingUser.rows.length > 0) {
+    console.log('❌ User already exists');
     throw createValidationError('user', 'User with this email or username already exists');
   }
 
+  console.log('✅ No existing user found');
+
   // Hash password
+  console.log('🔒 Starting password hashing...');
   const passwordHash = await authService.hashPassword(password);
+  console.log('✅ Password hashed successfully');
 
   // Generate verification tokens
   const emailVerificationToken = generateVerificationToken();
@@ -112,24 +146,28 @@ router.post('/register', authRateLimit, catchAsync(async (req, res) => {
   // Create user
   const userId = uuidv4();
   
-  const result = await database.query(`
-    INSERT INTO users (
-      username, email, password_hash, first_name, last_name,
-      date_of_birth, phone_number, street_address, city, state, zip_code, country,
-      role, email_verified, phone_verified, is_verified, is_active
-    ) VALUES (
-      @username, @email, @passwordHash, @firstName, @lastName,
-      @dateOfBirth, @phoneNumber, @streetAddress, @city, @state, @zipCode, @country,
-      'user', false, false, false, true
-    )
-    RETURNING id
-  `, {
-    username, email, passwordHash, firstName, lastName,
-    dateOfBirth, phoneNumber, streetAddress, city, state, zipCode, country
-  });
+  // Temporarily comment out INSERT to isolate issue
+  // const result = await database.query(`
+  //   INSERT INTO users (
+  //     username, email, password_hash, first_name, last_name,
+  //     date_of_birth, phone_number, street_address, city, state, zip_code, country,
+  //     role, email_verified, phone_verified, is_verified, is_active
+  //   ) VALUES (
+  //     @username, @email, @passwordHash, @firstName, @lastName,
+  //     @dateOfBirth, @phoneNumber, @streetAddress, @city, @state, @zipCode, @country,
+  //     'user', false, false, false, true
+  //   )
+  //   RETURNING id
+  // `, {
+  //   username, email, passwordHash, firstName, lastName,
+  //   dateOfBirth, phoneNumber, streetAddress, city, state, zipCode, country
+  // });
 
   // Get the generated user ID
-  const newUserId = result.rows[0].id;
+  // const newUserId = result.rows[0].id;
+  const newUserId = 'temp-user-' + Date.now();
+  
+  console.log('✅ Skipped database INSERT for debugging, temp ID:', newUserId);
 
   // Send email verification (temporarily disabled for debugging)
   // try {
@@ -198,7 +236,16 @@ router.post('/register', authRateLimit, catchAsync(async (req, res) => {
       }
     }
   });
-}));
+  } catch (error) {
+    console.error('❌ Registration error:', error);
+    res.status(500).json({
+      status: 'error',
+      message: 'Something went wrong!',
+      code: 'INTERNAL_ERROR',
+      requestId: crypto.randomUUID()
+    });
+  }
+});
 
 // Login user
 router.post('/login', authRateLimit, catchAsync(async (req, res) => {

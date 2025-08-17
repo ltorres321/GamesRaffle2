@@ -1,7 +1,10 @@
 {
-  "/not-found": "app/not-found.js",
+  "/_not-found": "app/_not-found.js",
+  "/auth/login/page": "app/auth/login/page.js",
   "/auth/register/page": "app/auth/register/page.js",
   "/auth/verify/page": "app/auth/verify/page.js",
+  "/contests/[id]/page": "app/contests/[id]/page.js",
+  "/contests/[id]/picks/page": "app/contests/[id]/picks/page.js",
   "/page": "app/page.js",
-  "/auth/login/page": "app/auth/login/page.js"
+  "/profile/page": "app/profile/page.js"
 }
