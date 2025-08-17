@@ -430,12 +430,12 @@ class NFL2024DataService {
                 const gameDate = new Date(game.date);
                 const sportRadarId = `sr:match:${gameDate.getFullYear()}-${(gameDate.getMonth() + 1).toString().padStart(2, '0')}-${gameDate.getDate().toString().padStart(2, '0')}-${game.home}-${game.away}`;
 
-                // Insert game
+                // Insert game (removed venue column - doesn't exist in schema)
                 await this.pool.query(`
                     INSERT INTO public.games (
                         sportradarid, week, season, gamedate, hometeamid, awayteamid,
-                        hometeamscore, awayteamscore, status, iscomplete, venue
-                    ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)
+                        hometeamscore, awayteamscore, status, iscomplete
+                    ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
                     ON CONFLICT (sportradarid) DO UPDATE SET
                         hometeamscore = $7,
                         awayteamscore = $8,
@@ -451,8 +451,7 @@ class NFL2024DataService {
                     game.homeScore,
                     game.awayScore,
                     'closed',
-                    true,
-                    `${game.home} Stadium`
+                    true
                 ]);
 
                 gamesInserted++;
@@ -658,12 +657,12 @@ class NFL2024DataService {
             sportRadarId = `sr:match:${gameDate.getFullYear()}-${(gameDate.getMonth() + 1).toString().padStart(2, '0')}-${gameDate.getDate().toString().padStart(2, '0')}-${homeTeam}-${awayTeam}`;
         }
 
-        // Insert game
+        // Insert game (removed venue column - doesn't exist in schema)
         await this.pool.query(`
             INSERT INTO public.games (
                 sportradarid, week, season, gamedate, hometeamid, awayteamid,
-                hometeamscore, awayteamscore, status, iscomplete, venue
-            ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)
+                hometeamscore, awayteamscore, status, iscomplete
+            ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
             ON CONFLICT (sportradarid) DO UPDATE SET
                 hometeamscore = $7,
                 awayteamscore = $8,
@@ -679,8 +678,7 @@ class NFL2024DataService {
             game.homeScore || 0,
             game.awayScore || 0,
             game.finished ? 'closed' : 'scheduled',
-            game.finished || false,
-            `${homeTeam} Stadium`
+            game.finished || false
         ]);
     }
 
@@ -691,13 +689,28 @@ class NFL2024DataService {
         if (!teamCode) return teamCode;
         
         const teamMap = {
+            // ArangoDB -> PostgreSQL mappings
             'LA': 'LAR',    // Los Angeles Rams
             'LVR': 'LV',    // Las Vegas Raiders
             'WSH': 'WAS',   // Washington Commanders
             'JAC': 'JAX',   // Jacksonville Jaguars
             'TB': 'TB',     // Tampa Bay (keep as is)
             'NE': 'NE',     // New England (keep as is)
-            // Add more mappings as discovered
+            'ARZ': 'ARI',   // Arizona Cardinals
+            'HST': 'HOU',   // Houston Texans
+            'BLT': 'BAL',   // Baltimore Ravens
+            'CLV': 'CLE',   // Cleveland Browns
+            'GNB': 'GB',    // Green Bay Packers
+            'KCC': 'KC',    // Kansas City Chiefs
+            'LAC': 'LAC',   // Los Angeles Chargers (keep as is)
+            'LVR': 'LV',    // Las Vegas Raiders
+            'NWE': 'NE',    // New England Patriots
+            'NYG': 'NYG',   // New York Giants (keep as is)
+            'NYJ': 'NYJ',   // New York Jets (keep as is)
+            'SFO': 'SF',    // San Francisco 49ers
+            'TAM': 'TB',    // Tampa Bay Buccaneers
+            'WAS': 'WAS',   // Washington (keep as is)
+            // Add more mappings as discovered from ArangoDB data
         };
         
         return teamMap[teamCode?.toUpperCase()] || teamCode?.toUpperCase();
