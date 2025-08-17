@@ -156,7 +156,7 @@ app.use('/api/survivor', survivorRoutes);
 // Root endpoint
 app.get('/', (req, res) => {
   res.json({
-    message: 'Survivor Sports Betting API',
+    message: 'Survivor Sports Betting API v2',
     version: require('../package.json').version,
     environment: config.app.env,
     docs: '/api/docs',
