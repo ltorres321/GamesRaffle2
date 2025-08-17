@@ -184,19 +184,21 @@ router.post('/temp-load-arango', async (req, res) => {
 
 /**
  * TEMPORARY: Explore ArangoDB pff_games data structure
- * GET /api/survivor/temp-explore-arango
+ * GET /api/survivor/temp-explore-arango?season=2023
  */
 router.get('/temp-explore-arango', async (req, res) => {
     try {
         const arangoDbService = require('../services/arangoDbService');
+        const season = req.query.season || 2023;
         
         // Get sample games from pff_games to understand structure
-        const sampleGames = await arangoDbService.explorePffGamesSchema();
+        const sampleGames = await arangoDbService.explorePffGamesSchema(season);
         
         res.json({
             success: true,
-            message: 'ArangoDB pff_games exploration successful',
+            message: `ArangoDB pff_games exploration successful for ${season}`,
             data: {
+                season: parseInt(season),
                 sampleGames: sampleGames,
                 totalSamples: sampleGames.length
             }
@@ -245,6 +247,81 @@ router.get('/temp-arango-seasons', async (req, res) => {
 
     } catch (error) {
         logger.error('Get ArangoDB seasons error:', error);
+        res.status(500).json({
+            success: false,
+            message: error.message
+        });
+    }
+});
+
+/**
+ * TEMPORARY: Test load ArangoDB data from any season
+ * POST /api/survivor/temp-load-season?season=2023
+ */
+router.post('/temp-load-season', async (req, res) => {
+    try {
+        const season = req.query.season || 2023;
+        const arangoDbService = require('../services/arangoDbService');
+        
+        logger.info(`Loading ${season} NFL season data from ArangoDB...`);
+        
+        // Get NFL games from ArangoDB for specified season
+        const arangoGames = await arangoDbService.getNFLGamesBySeason(season);
+        if (!arangoGames || arangoGames.length === 0) {
+            return res.json({
+                success: false,
+                message: `No NFL ${season} games found in ArangoDB`,
+                data: { season: parseInt(season), gamesFound: 0 }
+            });
+        }
+
+        logger.info(`Retrieved ${arangoGames.length} games from ${season}, converting for PostgreSQL...`);
+        
+        // Load team mappings first
+        await nfl2024DataService.loadTeamMappings();
+
+        // Convert and load games
+        let gamesInserted = 0;
+        let errors = [];
+        
+        for (const game of arangoGames) {
+            try {
+                await nfl2024DataService.insertArangoGame({
+                    ...game,
+                    // Override season if we're testing with different year
+                    week: game.week,
+                    date: game.date,
+                    home: game.home,
+                    away: game.away,
+                    homeScore: game.homeScore || 0,
+                    awayScore: game.awayScore || 0,
+                    finished: game.finished || false,
+                    gameId: game.gameId
+                });
+                gamesInserted++;
+            } catch (error) {
+                errors.push(`${game.away}@${game.home} W${game.week}: ${error.message}`);
+                if (errors.length <= 5) { // Only log first 5 errors
+                    logger.warn(`Failed to insert game ${game.away} @ ${game.home}:`, error.message);
+                }
+            }
+        }
+
+        res.json({
+            success: true,
+            message: `Loaded ${gamesInserted} games from ${season} season`,
+            data: {
+                season: parseInt(season),
+                totalGamesFound: arangoGames.length,
+                gamesInserted: gamesInserted,
+                errors: errors.length,
+                sampleErrors: errors.slice(0, 3),
+                source: 'arango'
+            }
+        });
+
+    } catch (error) {
+        logger.error('Load season data error:', error);
         res.status(500).json({
             success: false,
             message: error.message

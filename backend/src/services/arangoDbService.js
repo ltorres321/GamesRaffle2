@@ -46,7 +46,7 @@ class ArangoDbService {
         }
     }
 
-    async getNFL2024Games() {
+    async getNFLGamesBySeason(season = 2024) {
         if (!this.connected) {
             await this.connect();
         }
@@ -58,46 +58,51 @@ class ArangoDbService {
         try {
             const collection = this.db.collection('pff_games');
             
-            // Query for NFL 2024 games - using actual pff_games schema
+            // Query for NFL games by season - using actual pff_games schema
             const cursor = await this.db.query(`
                 FOR game IN pff_games
-                FILTER game.season == 2024
+                FILTER game.season == @season
                 AND game.league_id == 1
                 SORT game.week ASC, game.start ASC
                 RETURN {
                     week: game.week,
                     date: game.start,
-                    home: game.home_team.abbreviation,
-                    away: game.away_team.abbreviation,
-                    homeScore: game.score.home_team,
-                    awayScore: game.score.away_team,
+                    home: game.home_team ? game.home_team.abbreviation : null,
+                    away: game.away_team ? game.away_team.abbreviation : null,
+                    homeScore: game.score ? game.score.home_team : null,
+                    awayScore: game.score ? game.score.away_team : null,
                     gameId: game._key,
                     finished: game.lock_status == "processed",
-                    homeTeamFull: {
+                    homeTeamFull: game.home_team ? {
                         id: game.home_franchise_id,
                         name: game.home_team.nickname,
                         city: game.home_team.city,
                         abbreviation: game.home_team.abbreviation
-                    },
-                    awayTeamFull: {
+                    } : null,
+                    awayTeamFull: game.away_team ? {
                         id: game.away_franchise_id,
                         name: game.away_team.nickname,
                         city: game.away_team.city,
                         abbreviation: game.away_team.abbreviation
-                    }
+                    } : null
                 }
-            `);
+            `, { season: parseInt(season) });
 
             const games = await cursor.all();
-            logger.info(`Retrieved ${games.length} NFL 2024 games from ArangoDB`);
+            logger.info(`Retrieved ${games.length} NFL ${season} games from ArangoDB`);
             return games;
         } catch (error) {
-            logger.error('Error fetching NFL 2024 games from ArangoDB:', error.message);
+            logger.error(`Error fetching NFL ${season} games from ArangoDB:`, error.message);
             throw error;
         }
     }
 
-    async getNFL2024GamesByWeek(week) {
+    // Legacy method - will use 2024 by default but can be overridden
+    async getNFL2024Games() {
+        return this.getNFLGamesBySeason(2024);
+    }
+
+    async getNFLGamesBySeasonAndWeek(season, week) {
         if (!this.connected) {
             await this.connect();
         }
@@ -111,41 +116,46 @@ class ArangoDbService {
             
             const cursor = await this.db.query(`
                 FOR game IN pff_games
-                FILTER game.season == 2024
+                FILTER game.season == @season
                 AND game.league_id == 1
                 AND game.week == @week
                 SORT game.start ASC
                 RETURN {
                     week: game.week,
                     date: game.start,
-                    home: game.home_team.abbreviation,
-                    away: game.away_team.abbreviation,
-                    homeScore: game.score.home_team,
-                    awayScore: game.score.away_team,
+                    home: game.home_team ? game.home_team.abbreviation : null,
+                    away: game.away_team ? game.away_team.abbreviation : null,
+                    homeScore: game.score ? game.score.home_team : null,
+                    awayScore: game.score ? game.score.away_team : null,
                     gameId: game._key,
                     finished: game.lock_status == "processed",
-                    homeTeamFull: {
+                    homeTeamFull: game.home_team ? {
                         id: game.home_franchise_id,
                         name: game.home_team.nickname,
                         city: game.home_team.city,
                         abbreviation: game.home_team.abbreviation
-                    },
-                    awayTeamFull: {
+                    } : null,
+                    awayTeamFull: game.away_team ? {
                         id: game.away_franchise_id,
                         name: game.away_team.nickname,
                         city: game.away_team.city,
                         abbreviation: game.away_team.abbreviation
-                    }
+                    } : null
                 }
-            `, { week: parseInt(week) });
+            `, { season: parseInt(season), week: parseInt(week) });
 
             const games = await cursor.all();
-            logger.info(`Retrieved ${games.length} NFL 2024 week ${week} games from ArangoDB`);
+            logger.info(`Retrieved ${games.length} NFL ${season} week ${week} games from ArangoDB`);
             return games;
         } catch (error) {
-            logger.error(`Error fetching NFL 2024 week ${week} games from ArangoDB:`, error.message);
+            logger.error(`Error fetching NFL ${season} week ${week} games from ArangoDB:`, error.message);
             throw error;
         }
+    }
+
+    // Legacy method - will use 2024 by default but can be overridden
+    async getNFL2024GamesByWeek(week) {
+        return this.getNFLGamesBySeasonAndWeek(2024, week);
     }
 
     async testConnection() {
@@ -184,7 +194,7 @@ class ArangoDbService {
     }
 
     // Utility method to explore pff_games schema
-    async explorePffGamesSchema() {
+    async explorePffGamesSchema(season = 2023) {
         if (!this.connected) {
             await this.connect();
         }
@@ -196,27 +206,33 @@ class ArangoDbService {
         try {
             const cursor = await this.db.query(`
                 FOR game IN pff_games
-                FILTER game.season == 2024 AND game.league_id == 1
+                FILTER game.season == @season AND game.league_id == 1
                 LIMIT 3
                 RETURN {
                     _key: game._key,
                     season: game.season,
                     week: game.week,
                     start: game.start,
-                    home_team: game.home_team.abbreviation,
-                    away_team: game.away_team.abbreviation,
-                    home_score: game.score.home_team,
-                    away_score: game.score.away_team,
+                    home_team: game.home_team ? game.home_team.abbreviation : null,
+                    away_team: game.away_team ? game.away_team.abbreviation : null,
+                    home_score: game.score ? game.score.home_team : null,
+                    away_score: game.score ? game.score.away_team : null,
                     lock_status: game.lock_status,
-                    league_id: game.league_id
+                    league_id: game.league_id,
+                    raw_structure: {
+                        has_home_team: !!game.home_team,
+                        has_away_team: !!game.away_team,
+                        has_score: !!game.score,
+                        available_fields: Object.keys(game)
+                    }
                 }
-            `);
+            `, { season: parseInt(season) });
 
             const sampleGames = await cursor.all();
-            logger.info('Sample 2024 NFL games from pff_games:', JSON.stringify(sampleGames, null, 2));
+            logger.info(`Sample ${season} NFL games from pff_games:`, JSON.stringify(sampleGames, null, 2));
             return sampleGames;
         } catch (error) {
-            logger.error('Error exploring pff_games schema:', error.message);
+            logger.error(`Error exploring pff_games schema for ${season}:`, error.message);
             throw error;
         }
     }
