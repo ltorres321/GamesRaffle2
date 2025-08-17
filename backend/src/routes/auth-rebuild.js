@@ -11,11 +11,11 @@ router.post('/test-insert', async (req, res) => {
   try {
     console.log('🧪 Testing minimal INSERT...');
     
-    // Try the simplest possible insert
+    // Try the simplest possible insert with userid (which has auto-generation)
     const result = await database.query(`
       INSERT INTO users (username, email, passwordhash)
       VALUES ('testuser', 'test@example.com', 'hashedpassword123')
-      RETURNING id
+      RETURNING userid
     `);
     
     console.log('✅ Minimal insert result:', result);
@@ -185,13 +185,13 @@ router.post('/register', async (req, res) => {
         @dateOfBirth, @phoneNumber, @streetAddress, @city, @state, @zipCode, @country,
         'user', false, false, false, true
       )
-      RETURNING id
+      RETURNING userid
     `, {
       username, email, passwordHash, firstName, lastName,
       dateOfBirth, phoneNumber, streetAddress, city, state, zipCode, country
     });
 
-    const newUserId = result.rows[0].id;
+    const newUserId = result.rows[0].userid;
     console.log('✅ User created successfully with ID:', newUserId);
 
     res.status(201).json({
