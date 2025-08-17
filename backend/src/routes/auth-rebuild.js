@@ -6,6 +6,30 @@ const router = express.Router();
 
 console.log('🔧 Auth-rebuild: Starting module load');
 
+// Simple database test endpoint
+router.post('/test-db', async (req, res) => {
+  try {
+    console.log('🧪 Testing database connection...');
+    
+    // Simple SELECT query
+    const testQuery = await database.query('SELECT 1 as test');
+    console.log('✅ Basic query result:', testQuery);
+    
+    res.status(200).json({
+      success: true,
+      message: 'Database test successful',
+      result: testQuery
+    });
+  } catch (error) {
+    console.error('❌ Database test error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Database test failed',
+      error: error.message
+    });
+  }
+});
+
 // Registration endpoint with database integration
 router.post('/register', async (req, res) => {
   const requestId = crypto.randomUUID();
