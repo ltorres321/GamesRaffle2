@@ -70,22 +70,32 @@ router.post('/register', async (req, res) => {
     const passwordHash = await bcrypt.hash(password, saltRounds);
     console.log('✅ Password hashed successfully');
 
-    // Insert user into database with PostgreSQL compatible syntax
-    console.log('💾 Creating user in database...');
+    // Test database schema first
+    console.log('🔍 Testing database schema...');
+    
+    try {
+      const schemaTest = await database.query(`
+        SELECT column_name, data_type
+        FROM information_schema.columns
+        WHERE table_name = 'users'
+        LIMIT 5
+      `);
+      console.log('📋 Database schema sample:', schemaTest.rows);
+    } catch (schemaError) {
+      console.log('⚠️ Schema check failed:', schemaError.message);
+    }
+
+    // Simplified insert without complex fields
+    console.log('💾 Creating user with minimal data...');
     const result = await database.query(`
       INSERT INTO users (
-        username, email, password_hash, first_name, last_name,
-        date_of_birth, phone_number, street_address, city, state, zip_code, country,
-        role, email_verified, phone_verified, is_verified, is_active
+        username, email, password_hash, first_name, last_name, role, is_active
       ) VALUES (
-        @username, @email, @passwordHash, @firstName, @lastName,
-        @dateOfBirth, @phoneNumber, @streetAddress, @city, @state, @zipCode, @country,
-        'user', false, false, false, true
+        @username, @email, @passwordHash, @firstName, @lastName, 'user', true
       )
       RETURNING id
     `, {
-      username, email, passwordHash, firstName, lastName,
-      dateOfBirth, phoneNumber, streetAddress, city, state, zipCode, country
+      username, email, passwordHash, firstName, lastName
     });
 
     const newUserId = result.rows[0].id;
