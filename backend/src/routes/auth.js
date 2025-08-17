@@ -88,8 +88,8 @@ router.post('/register', authRateLimit, catchAsync(async (req, res) => {
 
   // Check if user already exists
   const existingUser = await database.query(`
-    SELECT UserId FROM Users
-    WHERE Email = @email OR Username = @username
+    SELECT id FROM users
+    WHERE email = @email OR username = @username
   `, { email, username });
 
   if (existingUser.rows.length > 0) {
@@ -113,18 +113,14 @@ router.post('/register', authRateLimit, catchAsync(async (req, res) => {
   const userId = uuidv4();
   
   await database.query(`
-    INSERT INTO Users (
-      UserId, Username, Email, PasswordHash, FirstName, LastName,
-      DateOfBirth, PhoneNumber, StreetAddress, City, State, ZipCode, Country,
-      EmailVerificationToken, EmailVerificationExpires,
-      PhoneVerificationCode, PhoneVerificationExpires,
-      Role, EmailVerified, PhoneVerified, IsVerified, IsActive
+    INSERT INTO users (
+      id, username, email, password_hash, first_name, last_name,
+      date_of_birth, phone_number, street_address, city, state, zip_code, country,
+      role, email_verified, phone_verified, is_verified, is_active
     ) VALUES (
       @userId, @username, @email, @passwordHash, @firstName, @lastName,
       @dateOfBirth, @phoneNumber, @streetAddress, @city, @state, @zipCode, @country,
-      @emailVerificationToken, @emailExpires,
-      @phoneVerificationCode, @phoneExpires,
-      'Player', false, false, false, true
+      'user', false, false, false, true
     )
   `, {
     userId, username, email, passwordHash, firstName, lastName,
@@ -210,10 +206,10 @@ router.post('/login', authRateLimit, catchAsync(async (req, res) => {
 
   // Find user
   const result = await database.query(`
-    SELECT UserId, Email, Username, PasswordHash, FirstName, LastName, 
-           Role, IsVerified, IsActive
-    FROM Users 
-    WHERE Email = @email
+    SELECT id, email, username, password_hash, first_name, last_name,
+           role, is_verified, is_active
+    FROM users
+    WHERE email = @email
   `, { email });
 
   if (!result.rows[0]) {
@@ -223,21 +219,21 @@ router.post('/login', authRateLimit, catchAsync(async (req, res) => {
   const user = result.rows[0];
 
   // Check if user is active
-  if (!user.IsActive) {
+  if (!user.is_active) {
     throw createAuthError('Account is deactivated', 'ACCOUNT_DEACTIVATED');
   }
 
   // Verify password
-  const isValidPassword = await authService.comparePassword(password, user.PasswordHash);
+  const isValidPassword = await authService.comparePassword(password, user.password_hash);
   if (!isValidPassword) {
     throw createAuthenticationError('Invalid email or password', 'INVALID_CREDENTIALS');
   }
 
   // Generate tokens
   const { accessToken, refreshToken, refreshPayload } = authService.generateTokens(
-    user.UserId, 
-    user.Email, 
-    user.Role
+    user.id,
+    user.email,
+    user.role
   );
 
   // Calculate refresh token expiry
@@ -245,38 +241,38 @@ router.post('/login', authRateLimit, catchAsync(async (req, res) => {
   refreshExpiresAt.setDate(refreshExpiresAt.getDate() + 30); // 30 days
 
   // Store refresh token
-  await authService.storeRefreshToken(user.UserId, refreshToken, refreshPayload.jti, refreshExpiresAt);
+  await authService.storeRefreshToken(user.id, refreshToken, refreshPayload.jti, refreshExpiresAt);
 
   // Create session
-  const sessionId = await authService.createSession(user.UserId, req);
+  const sessionId = await authService.createSession(user.id, req);
 
-  // Update last login
-  await database.query(`
-    UPDATE Users
-    SET LastLoginAt = NOW()
-    WHERE UserId = @userId
-  `, { userId: user.UserId });
+  // Update last login (skip for now as column doesn't exist in PostgreSQL schema)
+  // await database.query(`
+  //   UPDATE users
+  //   SET last_login_at = NOW()
+  //   WHERE id = @userId
+  // `, { userId: user.id });
 
   // Log successful login
-  logger.logBusinessEvent('user_login', { 
-    userId: user.UserId, 
-    email: user.Email, 
-    ip: req.ip 
-  }, user.UserId);
+  logger.logBusinessEvent('user_login', {
+    userId: user.id,
+    email: user.email,
+    ip: req.ip
+  }, user.id);
 
   res.json({
     success: true,
     message: 'Login successful',
     data: {
       user: {
-        id: user.UserId,
-        username: user.Username,
-        email: user.Email,
-        firstName: user.FirstName,
-        lastName: user.LastName,
-        role: user.Role,
-        isVerified: user.IsVerified,
-        isActive: user.IsActive
+        id: user.id,
+        username: user.username,
+        email: user.email,
+        firstName: user.first_name,
+        lastName: user.last_name,
+        role: user.role,
+        isVerified: user.is_verified,
+        isActive: user.is_active
       },
       tokens: {
         accessToken,
