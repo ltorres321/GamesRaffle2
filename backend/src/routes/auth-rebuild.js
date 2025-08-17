@@ -6,6 +6,36 @@ const router = express.Router();
 
 console.log('🔧 Auth-rebuild: Starting module load');
 
+// Test minimal INSERT
+router.post('/test-insert', async (req, res) => {
+  try {
+    console.log('🧪 Testing minimal INSERT...');
+    
+    // Try the simplest possible insert
+    const result = await database.query(`
+      INSERT INTO users (username, email, passwordhash)
+      VALUES ('testuser', 'test@example.com', 'hashedpassword123')
+      RETURNING id
+    `);
+    
+    console.log('✅ Minimal insert result:', result);
+    
+    res.status(200).json({
+      success: true,
+      message: 'Minimal insert successful',
+      result: result
+    });
+  } catch (error) {
+    console.error('❌ Minimal insert error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Minimal insert failed',
+      error: error.message,
+      stack: error.stack
+    });
+  }
+});
+
 // Test users table structure
 router.post('/test-users-table', async (req, res) => {
   try {
