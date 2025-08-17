@@ -128,6 +128,61 @@ router.post('/test-db', async (req, res) => {
   }
 });
 
+// Test parameterized INSERT with same parameter names as registration
+router.post('/test-parameterized-insert', async (req, res) => {
+  try {
+    console.log('🧪 Testing parameterized INSERT with registration parameter names...');
+    
+    // Test with exact same parameter names as registration
+    const testParams = {
+      username: 'paramtest',
+      email: 'paramtest@example.com',
+      passwordHash: '$2b$10$hashedpassword123',
+      firstName: 'Param',
+      lastName: 'Test',
+      dateOfBirth: '1990-01-01',
+      phoneNumber: '+1-555-123-4567',
+      streetAddress: '123 Param St',
+      city: 'Param City',
+      state: 'TX',
+      zipCode: '12345',
+      country: 'US'
+    };
+    
+    console.log('📝 Test parameters:', Object.keys(testParams));
+    
+    const result = await database.query(`
+      INSERT INTO users (
+        username, email, passwordhash, firstname, lastname,
+        dateofbirth, phonenumber, streetaddress, city, state, zipcode, country,
+        role, emailverified, phoneverified, isverified, isactive
+      ) VALUES (
+        @username, @email, @passwordHash, @firstName, @lastName,
+        @dateOfBirth, @phoneNumber, @streetAddress, @city, @state, @zipCode, @country,
+        'user', false, false, false, true
+      )
+      RETURNING userid
+    `, testParams);
+    
+    console.log('✅ Parameterized insert result:', result);
+    
+    res.status(200).json({
+      success: true,
+      message: 'Parameterized insert successful',
+      result: result,
+      params: Object.keys(testParams)
+    });
+  } catch (error) {
+    console.error('❌ Parameterized insert error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Parameterized insert failed',
+      error: error.message,
+      stack: error.stack
+    });
+  }
+});
+
 // Debug registration INSERT to isolate parameter issue
 router.post('/debug-registration-insert', async (req, res) => {
   try {
