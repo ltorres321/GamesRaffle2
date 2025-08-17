@@ -221,7 +221,71 @@ router.post('/debug-registration-insert', async (req, res) => {
   }
 });
 
-// Registration endpoint with database integration
+// Simplified registration endpoint to isolate the issue
+router.post('/register-simple', async (req, res) => {
+  const requestId = crypto.randomUUID();
+  
+  try {
+    console.log('🚀 Simple registration endpoint hit, requestId:', requestId);
+    
+    const { username, email, password, firstName, lastName } = req.body;
+    console.log('📝 Simple request data:', { username, email, firstName, lastName });
+
+    // Minimal validation
+    if (!username || !email || !password) {
+      return res.status(400).json({
+        success: false,
+        message: 'Missing required fields',
+        requestId
+      });
+    }
+
+    console.log('✅ Basic validation passed');
+
+    // Hash password
+    console.log('🔒 Hashing password...');
+    const saltRounds = 10;
+    const passwordHash = await bcrypt.hash(password, saltRounds);
+    console.log('✅ Password hashed successfully');
+
+    // Simple insert
+    console.log('💾 Creating user...');
+    const result = await database.query(`
+      INSERT INTO users (username, email, passwordhash, firstname, lastname, role, isactive)
+      VALUES (@username, @email, @passwordHash, @firstName, @lastName, 'user', true)
+      RETURNING userid
+    `, {
+      username: username + '_simple_' + Date.now(), // Make unique
+      email: email.replace('@', '_simple_' + Date.now() + '@'), // Make unique
+      passwordHash,
+      firstName,
+      lastName
+    });
+
+    const newUserId = result.rows[0].userid;
+    console.log('✅ User created successfully with ID:', newUserId);
+
+    console.log('📤 Sending success response...');
+    res.status(201).json({
+      success: true,
+      message: 'Simple registration successful',
+      userId: newUserId,
+      requestId
+    });
+    console.log('✅ Response sent successfully');
+
+  } catch (error) {
+    console.error('❌ Simple registration error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Simple registration failed',
+      error: error.message,
+      requestId
+    });
+  }
+});
+
+// Full registration endpoint with database integration
 router.post('/register', async (req, res) => {
   const requestId = crypto.randomUUID();
   
@@ -285,21 +349,6 @@ router.post('/register', async (req, res) => {
     const passwordHash = await bcrypt.hash(password, saltRounds);
     console.log('✅ Password hashed successfully');
 
-    // Test database schema first
-    console.log('🔍 Testing database schema...');
-    
-    try {
-      const schemaTest = await database.query(`
-        SELECT column_name, data_type
-        FROM information_schema.columns
-        WHERE table_name = 'users'
-        LIMIT 5
-      `);
-      console.log('📋 Database schema sample:', schemaTest.rows);
-    } catch (schemaError) {
-      console.log('⚠️ Schema check failed:', schemaError.message);
-    }
-
     // Insert with correct PostgreSQL schema column names
     console.log('💾 Creating user with correct column names...');
     const result = await database.query(`
@@ -321,6 +370,7 @@ router.post('/register', async (req, res) => {
     const newUserId = result.rows[0].userid;
     console.log('✅ User created successfully with ID:', newUserId);
 
+    console.log('📤 Sending success response...');
     res.status(201).json({
       success: true,
       message: 'User registered successfully',
@@ -337,6 +387,7 @@ router.post('/register', async (req, res) => {
       },
       requestId
     });
+    console.log('✅ Response sent successfully');
 
   } catch (error) {
     console.error('❌ Auth-rebuild registration error:', error);
