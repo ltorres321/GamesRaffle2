@@ -180,14 +180,19 @@ export default function MyPicks() {
 
   const formatGameDate = (dateString: string) => {
     const date = new Date(dateString)
-    return date.toLocaleString('en-US', {
-      weekday: 'short',
-      year: 'numeric',
-      month: 'short',
-      day: 'numeric',
+    
+    // Use explicit formatting to ensure year displays
+    const weekday = date.toLocaleDateString('en-US', { weekday: 'short' })
+    const month = date.toLocaleDateString('en-US', { month: 'short' })
+    const day = date.getDate()
+    const year = date.getFullYear()
+    const time = date.toLocaleTimeString('en-US', {
       hour: 'numeric',
-      minute: '2-digit'
+      minute: '2-digit',
+      hour12: true
     })
+    
+    return `${weekday}, ${month} ${day}, ${year}, ${time}`
   }
 
   const getResultIcon = (gameResult: string, isCorrect?: boolean) => {
