@@ -1,0 +1,12 @@
+[build]
+  base = "frontend"
+  command = "npm install && npm run build"
+
+[build.environment]
+  NODE_ENV = "production"
+  NEXT_TELEMETRY_DISABLED = "1"
+  NEXT_PUBLIC_API_URL = "https://gamesraffle2.onrender.com"
+
+# Netlify Next.js plugin handles deployment automatically
+[[plugins]]
+  package = "@netlify/plugin-nextjs"

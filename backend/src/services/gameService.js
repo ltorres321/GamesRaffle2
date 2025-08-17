@@ -52,13 +52,13 @@ class GameService {
             for (const [teamId, teamData] of teams) {
                 try {
                     await db.query(`
-                        UPDATE Teams 
+                        UPDATE Teams
                         SET SportRadarId = @sportRadarId,
                             Name = @name,
                             Alias = @alias,
                             Market = @market,
                             FullName = @fullName,
-                            UpdatedAt = GETDATE()
+                            UpdatedAt = NOW()
                         WHERE Alias = @alias OR SportRadarId = @sportRadarId
                     `, {
                         sportRadarId: teamData.sportRadarId,
@@ -119,12 +119,12 @@ class GameService {
                     if (existingGame.length > 0) {
                         // Update existing game
                         await db.query(`
-                            UPDATE Games 
+                            UPDATE Games
                             SET HomeTeamScore = @homeScore,
                                 AwayTeamScore = @awayScore,
                                 Status = @status,
                                 GameDate = @gameDate,
-                                UpdatedAt = GETDATE()
+                                UpdatedAt = NOW()
                             WHERE SportRadarId = @sportRadarId
                         `, {
                             homeScore: null, // Will be updated when boxscore is available
@@ -138,11 +138,11 @@ class GameService {
                         // Create new game
                         await db.query(`
                             INSERT INTO Games (
-                                SportRadarId, Week, Season, HomeTeamId, AwayTeamId, 
+                                SportRadarId, Week, Season, HomeTeamId, AwayTeamId,
                                 GameDate, Status, CreatedAt, UpdatedAt
                             ) VALUES (
                                 @sportRadarId, @week, @season, @homeTeamId, @awayTeamId,
-                                @gameDate, @status, GETDATE(), GETDATE()
+                                @gameDate, @status, NOW(), NOW()
                             )
                         `, {
                             sportRadarId: game.gameId,
@@ -233,12 +233,12 @@ class GameService {
                 try {
                     // Update game with scores and status
                     await db.query(`
-                        UPDATE Games 
+                        UPDATE Games
                         SET HomeTeamScore = @homeScore,
                             AwayTeamScore = @awayScore,
                             Status = @status,
                             IsComplete = @isComplete,
-                            UpdatedAt = GETDATE()
+                            UpdatedAt = NOW()
                         WHERE GameId = @gameId
                     `, {
                         homeScore: boxscore.homeTeam.points,
@@ -325,10 +325,10 @@ class GameService {
 
                 // Update pick result
                 await db.query(`
-                    UPDATE PlayerPicks 
+                    UPDATE PlayerPicks
                     SET IsCorrect = @isCorrect,
-                        ProcessedAt = GETDATE(),
-                        UpdatedAt = GETDATE()
+                        ProcessedAt = NOW(),
+                        UpdatedAt = NOW()
                     WHERE PickId = @pickId
                 `, {
                     isCorrect: isCorrect,
@@ -378,12 +378,12 @@ class GameService {
         try {
             // Update player status to eliminated
             await db.query(`
-                UPDATE SurvivorGamePlayers 
+                UPDATE SurvivorGamePlayers
                 SET Status = 'eliminated',
                     EliminatedWeek = @week,
                     EliminatedReason = @reason,
-                    EliminatedAt = GETDATE(),
-                    UpdatedAt = GETDATE()
+                    EliminatedAt = NOW(),
+                    UpdatedAt = NOW()
                 WHERE SurvivorGameId = @gameId AND PlayerId = @playerId
             `, {
                 week,
@@ -428,11 +428,11 @@ class GameService {
 
                     if (winner.length > 0) {
                         await db.query(`
-                            UPDATE SurvivorGames 
+                            UPDATE SurvivorGames
                             SET Status = 'completed',
                                 WinnerId = @winnerId,
-                                CompletedAt = GETDATE(),
-                                UpdatedAt = GETDATE()
+                                CompletedAt = NOW(),
+                                UpdatedAt = NOW()
                             WHERE GameId = @gameId
                         `, {
                             winnerId: winner[0].PlayerId,
@@ -444,11 +444,11 @@ class GameService {
                 } else {
                     // No survivors - everyone eliminated
                     await db.query(`
-                        UPDATE SurvivorGames 
+                        UPDATE SurvivorGames
                         SET Status = 'completed',
                             WinnerId = NULL,
-                            CompletedAt = GETDATE(),
-                            UpdatedAt = GETDATE()
+                            CompletedAt = NOW(),
+                            UpdatedAt = NOW()
                         WHERE GameId = @gameId
                     `, { gameId: survivorGameId });
 
@@ -485,9 +485,9 @@ class GameService {
         try {
             const result = await db.query(`
                 SELECT MAX(Week) as CurrentWeek
-                FROM Games 
-                WHERE Season = @season 
-                AND GameDate <= GETDATE()
+                FROM Games
+                WHERE Season = @season
+                AND GameDate <= NOW()
             `, { season: this.currentSeason });
 
             return result[0]?.CurrentWeek || 1;

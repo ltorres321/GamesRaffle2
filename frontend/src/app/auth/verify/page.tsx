@@ -4,9 +4,11 @@ import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import apiService from '@/services/api'
+import { useAuth } from '@/contexts/AuthContext'
 
 export default function VerifyPage() {
   const router = useRouter()
+  const { refreshAuth } = useAuth()
   const [emailCode, setEmailCode] = useState('')
   const [smsCode, setSmsCode] = useState('')
   const [errors, setErrors] = useState<Record<string, string>>({})
@@ -72,6 +74,7 @@ export default function VerifyPage() {
         setSuccess(prev => ({ ...prev, email: 'Email verified successfully!' }))
         setEmailCode('')
         await fetchUserInfo() // Refresh user info
+        await refreshAuth() // Update global auth context
         
         // User can now access the site with just email verification
         if (response.data?.canAccessSite) {
@@ -105,6 +108,7 @@ export default function VerifyPage() {
         setSuccess(prev => ({ ...prev, sms: 'Phone verified successfully!' }))
         setSmsCode('')
         await fetchUserInfo() // Refresh user info
+        await refreshAuth() // Update global auth context
         
         // User can now access the site with just phone verification
         if (response.data?.canAccessSite) {
