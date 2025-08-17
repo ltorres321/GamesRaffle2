@@ -27,7 +27,7 @@ router.post('/admin/load-2024-data', authenticate, async (req, res) => {
             });
         }
 
-        const result = await nfl2024DataService.load2024SeasonData();
+        const result = await nfl2024DataService.loadEnhanced2024SeasonData();
         
         res.json({
             success: true,
@@ -67,6 +67,104 @@ router.get('/admin/stats', authenticate, async (req, res) => {
 
     } catch (error) {
         logger.error('Get stats error:', error);
+        res.status(500).json({
+            success: false,
+            message: error.message
+        });
+    }
+});
+
+/**
+ * Load 2024 NFL season data from ArangoDB
+ * POST /api/survivor/admin/load-arango-data
+ */
+router.post('/admin/load-arango-data', authenticate, async (req, res) => {
+    try {
+        // Check if user is admin
+        if (req.user.role !== 'Admin' && req.user.role !== 'SuperAdmin') {
+            return res.status(403).json({
+                success: false,
+                message: 'Admin access required'
+            });
+        }
+
+        const result = await nfl2024DataService.loadFromArangoDB();
+        
+        res.json({
+            success: true,
+            message: 'ArangoDB data loaded successfully',
+            data: result
+        });
+
+    } catch (error) {
+        logger.error('Load ArangoDB data error:', error);
+        res.status(500).json({
+            success: false,
+            message: error.message
+        });
+    }
+});
+
+/**
+ * Test ArangoDB connection
+ * GET /api/survivor/admin/test-arango
+ */
+router.get('/admin/test-arango', authenticate, async (req, res) => {
+    try {
+        // Check if user is admin
+        if (req.user.role !== 'Admin' && req.user.role !== 'SuperAdmin') {
+            return res.status(403).json({
+                success: false,
+                message: 'Admin access required'
+            });
+        }
+
+        const result = await nfl2024DataService.testArangoConnection();
+        
+        res.json({
+            success: result.success,
+            message: result.success ? 'ArangoDB connection successful' : 'ArangoDB connection failed',
+            data: result
+        });
+
+    } catch (error) {
+        logger.error('Test ArangoDB connection error:', error);
+        res.status(500).json({
+            success: false,
+            message: error.message
+        });
+    }
+});
+
+/**
+ * Get NFL games for a specific week from ArangoDB
+ * GET /api/survivor/admin/arango/week/:week
+ */
+router.get('/admin/arango/week/:week', authenticate, async (req, res) => {
+    try {
+        // Check if user is admin
+        if (req.user.role !== 'Admin' && req.user.role !== 'SuperAdmin') {
+            return res.status(403).json({
+                success: false,
+                message: 'Admin access required'
+            });
+        }
+
+        const { week } = req.params;
+        const games = await nfl2024DataService.getArangoWeekGames(parseInt(week));
+        
+        res.json({
+            success: true,
+            data: {
+                week: parseInt(week),
+                season: 2024,
+                source: 'ArangoDB',
+                games: games
+            }
+        });
+
+    } catch (error) {
+        logger.error('Get ArangoDB week games error:', error);
         res.status(500).json({
             success: false,
             message: error.message
