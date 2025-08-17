@@ -4,7 +4,8 @@ import { useState, useEffect } from 'react'
 import { useParams, useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { useAuth } from '@/contexts/AuthContext'
-import { 
+import API_CONFIG from '@/config/api'
+import {
   ChevronLeftIcon,
   ClockIcon,
   CheckCircleIcon,
@@ -74,67 +75,64 @@ export default function WeeklyPicks() {
   const fetchWeekData = async (week: number) => {
     try {
       setLoading(true)
-      // Mock data - replace with actual API call
-      const mockTeams: NFLTeam[] = [
-        { teamId: '1', alias: 'KC', name: 'Chiefs', city: 'Kansas City', conference: 'AFC', division: 'West' },
-        { teamId: '2', alias: 'BUF', name: 'Bills', city: 'Buffalo', conference: 'AFC', division: 'East' },
-        { teamId: '3', alias: 'SF', name: '49ers', city: 'San Francisco', conference: 'NFC', division: 'West' },
-        { teamId: '4', alias: 'DAL', name: 'Cowboys', city: 'Dallas', conference: 'NFC', division: 'East' },
-        { teamId: '5', alias: 'MIA', name: 'Dolphins', city: 'Miami', conference: 'AFC', division: 'East' },
-        { teamId: '6', alias: 'LAR', name: 'Rams', city: 'Los Angeles', conference: 'NFC', division: 'West' },
-        { teamId: '7', alias: 'BAL', name: 'Ravens', city: 'Baltimore', conference: 'AFC', division: 'North' },
-        { teamId: '8', alias: 'GB', name: 'Packers', city: 'Green Bay', conference: 'NFC', division: 'North' }
-      ]
-
-      const mockGames: NFLGame[] = [
-        {
-          gameId: 'game1',
-          week,
-          homeTeam: mockTeams[0], // KC
-          awayTeam: mockTeams[1], // BUF
-          scheduledTime: '2024-10-27T20:20:00Z',
-          status: 'scheduled'
+      console.log(`Fetching NFL games for week ${week}...`)
+      
+      // Call the real backend API for NFL games
+      const response = await fetch(`${API_CONFIG.BASE_URL}/api/survivor/nfl/week/${week}?season=2024`)
+      
+      if (!response.ok) {
+        throw new Error(`Failed to fetch week ${week} games: ${response.statusText}`)
+      }
+      
+      const apiData = await response.json()
+      console.log('API Response:', apiData)
+      
+      if (!apiData.success) {
+        throw new Error(apiData.message || 'Failed to load NFL games')
+      }
+      
+      // Transform the API data to match frontend interface
+      const transformedGames: NFLGame[] = apiData.data.games.map((game: any) => ({
+        gameId: game.gameId.toString(),
+        week: game.week,
+        homeTeam: {
+          teamId: game.homeTeam.id.toString(),
+          alias: game.homeTeam.alias,
+          name: game.homeTeam.name,
+          city: game.homeTeam.market,
+          conference: game.homeTeam.conference || 'AFC', // Default fallback
+          division: game.homeTeam.division || 'North'
         },
-        {
-          gameId: 'game2',
-          week,
-          homeTeam: mockTeams[2], // SF
-          awayTeam: mockTeams[3], // DAL
-          scheduledTime: '2024-10-27T20:25:00Z',
-          status: 'scheduled'
+        awayTeam: {
+          teamId: game.awayTeam.id.toString(),
+          alias: game.awayTeam.alias,
+          name: game.awayTeam.name,
+          city: game.awayTeam.market,
+          conference: game.awayTeam.conference || 'NFC', // Default fallback
+          division: game.awayTeam.division || 'South'
         },
-        {
-          gameId: 'game3',
-          week,
-          homeTeam: mockTeams[4], // MIA
-          awayTeam: mockTeams[5], // LAR
-          scheduledTime: '2024-10-27T17:00:00Z',
-          status: 'scheduled'
-        },
-        {
-          gameId: 'game4',
-          week,
-          homeTeam: mockTeams[6], // BAL
-          awayTeam: mockTeams[7], // GB
-          scheduledTime: '2024-10-27T13:00:00Z',
-          status: 'scheduled'
-        }
-      ]
-
-      const mockData: WeeklyPickData = {
+        scheduledTime: game.gameDate, // This should now have the correct 2024 dates!
+        status: game.isComplete ? 'final' : 'scheduled',
+        homeScore: game.homeTeam.score,
+        awayScore: game.awayTeam.score
+      }))
+      
+      console.log('Transformed games:', transformedGames)
+      
+      const weekData: WeeklyPickData = {
         week,
-        games: mockGames,
+        games: transformedGames,
         currentPicks: [],
-        usedTeams: ['TB', 'NE', 'PIT'], // Previously used teams
-        pickDeadline: '2024-10-27T13:00:00Z',
+        usedTeams: ['TB', 'NE', 'PIT'], // TODO: Get real used teams from API
+        pickDeadline: transformedGames.length > 0 ? transformedGames[0].scheduledTime : new Date().toISOString(),
         requireTwoPicks: week >= 12
       }
 
-      setWeekData(mockData)
+      setWeekData(weekData)
       setSelectedTeams([])
     } catch (err) {
       console.error('Failed to fetch week data:', err)
-      setError('Failed to load week data')
+      setError('Failed to load week data: ' + (err as Error).message)
     } finally {
       setLoading(false)
     }
@@ -192,7 +190,9 @@ export default function WeeklyPicks() {
   }
 
   const formatGameTime = (scheduledTime: string) => {
+    console.log('formatGameTime called with:', scheduledTime)
     const date = new Date(scheduledTime)
+    console.log('Parsed date:', date)
     
     // Use explicit formatting to ensure year displays
     const weekday = date.toLocaleDateString('en-US', { weekday: 'short' })
@@ -205,7 +205,9 @@ export default function WeeklyPicks() {
       hour12: true
     })
     
-    return `${weekday}, ${month} ${day}, ${year}, ${time}`
+    const result = `${weekday}, ${month} ${day}, ${year}, ${time}`
+    console.log('formatGameTime result:', result)
+    return result
   }
 
   const isPickDeadlinePassed = () => {
