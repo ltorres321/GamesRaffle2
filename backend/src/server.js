@@ -24,6 +24,7 @@ const scheduleRoutes = require('./routes/schedule');
 const adminRoutes = require('./routes/admin');
 const uploadRoutes = require('./routes/upload');
 const cleanupRoutes = require('./routes/cleanup');
+const survivorRoutes = require('./routes/survivor');
 
 const app = express();
 
@@ -150,6 +151,7 @@ app.use('/api/schedule', scheduleRoutes);
 app.use('/api/admin', adminRoutes);
 app.use('/api/upload', uploadRoutes);
 app.use('/api/cleanup', cleanupRoutes);
+app.use('/api/survivor', survivorRoutes);
 
 // Root endpoint
 app.get('/', (req, res) => {
@@ -177,7 +179,8 @@ app.get('/api/docs', (req, res) => {
       teams: '/api/teams - NFL teams',
       schedule: '/api/schedule - NFL schedule',
       admin: '/api/admin - Admin functions',
-      upload: '/api/upload - File uploads'
+      upload: '/api/upload - File uploads',
+      survivor: '/api/survivor - NFL Survivor game engine'
     },
     rateLimit: '100 requests per 15 minutes per IP',
     cors: 'Enabled for configured origins'
