@@ -6,6 +6,40 @@ const router = express.Router();
 
 console.log('🔧 Auth-rebuild: Starting module load');
 
+// Test progressive INSERT to isolate field issues
+router.post('/test-insert-progressive', async (req, res) => {
+  try {
+    console.log('🧪 Testing progressive INSERT...');
+    
+    // Test with additional fields step by step
+    const result = await database.query(`
+      INSERT INTO users (
+        username, email, passwordhash, firstname, lastname, role, isactive
+      ) VALUES (
+        'testuser2', 'test2@example.com', 'hashedpassword123',
+        'Test', 'User', 'user', true
+      )
+      RETURNING userid
+    `);
+    
+    console.log('✅ Progressive insert result:', result);
+    
+    res.status(200).json({
+      success: true,
+      message: 'Progressive insert successful',
+      result: result
+    });
+  } catch (error) {
+    console.error('❌ Progressive insert error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Progressive insert failed',
+      error: error.message,
+      stack: error.stack
+    });
+  }
+});
+
 // Test minimal INSERT
 router.post('/test-insert', async (req, res) => {
   try {
