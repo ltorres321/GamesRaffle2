@@ -195,6 +195,7 @@ export default function WeeklyPicks() {
     const date = new Date(scheduledTime)
     return date.toLocaleDateString('en-US', {
       weekday: 'short',
+      year: 'numeric',
       month: 'short',
       day: 'numeric',
       hour: 'numeric',

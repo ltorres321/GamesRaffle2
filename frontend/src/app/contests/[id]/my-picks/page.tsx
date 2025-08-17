@@ -182,6 +182,7 @@ export default function MyPicks() {
     const date = new Date(dateString)
     return date.toLocaleDateString('en-US', {
       weekday: 'short',
+      year: 'numeric',
       month: 'short',
       day: 'numeric',
       hour: 'numeric',
