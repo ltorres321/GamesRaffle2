@@ -245,9 +245,9 @@ const authenticate = catchAsync(async (req, res, next) => {
 
   // Get user from database
   const result = await database.query(`
-    SELECT id, email, username, first_name, last_name, role, is_verified, is_active
+    SELECT userid, email, username, firstname, lastname, role, isverified, isactive
     FROM users
-    WHERE id = $1
+    WHERE userid = $1
   `, [decoded.userId]);
 
   if (!result.rows[0]) {
@@ -262,20 +262,20 @@ const authenticate = catchAsync(async (req, res, next) => {
 
   // Attach user to request
   req.user = {
-    id: user.id,
-    userId: user.id,  // Add userId for compatibility with survivor routes
+    id: user.userid,
+    userId: user.userid,  // Add userId for compatibility with survivor routes
     email: user.email,
     username: user.username,
-    firstName: user.first_name,
-    lastName: user.last_name,
+    firstName: user.firstname,
+    lastName: user.lastname,
     role: user.role,
-    isVerified: user.is_verified,
-    isActive: user.is_active
+    isVerified: user.isverified,
+    isActive: user.isactive
   };
 
   // Log successful authentication
   logger.debug('User authenticated', {
-    userId: user.id,
+    userId: user.userid,
     email: user.email,
     role: user.role
   });
@@ -324,23 +324,23 @@ const optionalAuth = catchAsync(async (req, res, next) => {
       const decoded = await authService.verifyToken(token, 'access');
       
       const result = await database.query(`
-        SELECT id, email, username, first_name, last_name, role, is_verified, is_active
+        SELECT userid, email, username, firstname, lastname, role, isverified, isactive
         FROM users
-        WHERE id = $1 AND is_active = true
+        WHERE userid = $1 AND isactive = true
       `, [decoded.userId]);
 
       if (result.rows[0]) {
         const user = result.rows[0];
         req.user = {
-          id: user.id,
-          userId: user.id,  // Add userId for compatibility with survivor routes
+          id: user.userid,
+          userId: user.userid,  // Add userId for compatibility with survivor routes
           email: user.email,
           username: user.username,
-          firstName: user.first_name,
-          lastName: user.last_name,
+          firstName: user.firstname,
+          lastName: user.lastname,
           role: user.role,
-          isVerified: user.is_verified,
-          isActive: user.is_active
+          isVerified: user.isverified,
+          isActive: user.isactive
         };
       }
     } catch (error) {
