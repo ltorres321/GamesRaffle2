@@ -2,6 +2,7 @@ const express = require('express');
 const bcrypt = require('bcrypt');
 const database = require('../config/database');
 const crypto = require('crypto');
+const jwt = require('jsonwebtoken');
 const router = express.Router();
 
 console.log('🔧 Auth-rebuild: Starting module load');
@@ -421,6 +422,320 @@ router.post('/register', async (req, res) => {
       message: 'Something went wrong during registration!',
       code: 'INTERNAL_ERROR',
       requestId
+    });
+  }
+});
+
+// JWT Token verification middleware
+const verifyToken = (req, res, next) => {
+  const authHeader = req.headers.authorization;
+  const token = authHeader && authHeader.split(' ')[1]; // Bearer TOKEN
+
+  if (!token) {
+    return res.status(401).json({
+      authenticated: false,
+      message: 'Access token required'
+    });
+  }
+
+  try {
+    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+    req.user = decoded;
+    next();
+  } catch (error) {
+    return res.status(401).json({
+      authenticated: false,
+      message: 'Invalid or expired token'
+    });
+  }
+};
+
+// GET /api/auth/verify - Verify JWT token (used by AuthContext)
+router.get('/verify', verifyToken, async (req, res) => {
+  try {
+    console.log('🔍 Token verification for user:', req.user.userId);
+
+    // Get user details from database
+    const userResult = await database.query(`
+      SELECT userid, username, email, firstname, lastname, role,
+             emailverified, phoneverified, isverified, isactive
+      FROM users
+      WHERE userid = @userId
+    `, { userId: req.user.userId });
+
+    if (!userResult.rows || userResult.rows.length === 0) {
+      return res.status(401).json({
+        authenticated: false,
+        message: 'User not found'
+      });
+    }
+
+    const user = userResult.rows[0];
+
+    res.status(200).json({
+      authenticated: true,
+      data: {
+        user: {
+          id: user.userid,
+          username: user.username,
+          email: user.email,
+          firstName: user.firstname,
+          lastName: user.lastname,
+          role: user.role,
+          emailVerified: user.emailverified,
+          phoneVerified: user.phoneverified,
+          isVerified: user.isverified,
+          isActive: user.isactive
+        }
+      }
+    });
+
+  } catch (error) {
+    console.error('❌ Token verification error:', error);
+    res.status(401).json({
+      authenticated: false,
+      message: 'Token verification failed'
+    });
+  }
+});
+
+// GET /api/auth/me - Get current user profile
+router.get('/me', verifyToken, async (req, res) => {
+  try {
+    console.log('👤 Get user profile for:', req.user.userId);
+
+    const userResult = await database.query(`
+      SELECT userid, username, email, firstname, lastname, phonenumber,
+             dateofbirth, streetaddress, city, state, zipcode, country,
+             role, emailverified, phoneverified, isverified, isactive,
+             createdat
+      FROM users
+      WHERE userid = @userId
+    `, { userId: req.user.userId });
+
+    if (!userResult.rows || userResult.rows.length === 0) {
+      return res.status(404).json({
+        success: false,
+        message: 'User not found'
+      });
+    }
+
+    const user = userResult.rows[0];
+
+    res.status(200).json({
+      success: true,
+      data: {
+        user: {
+          id: user.userid,
+          username: user.username,
+          email: user.email,
+          firstName: user.firstname,
+          lastName: user.lastname,
+          phoneNumber: user.phonenumber,
+          dateOfBirth: user.dateofbirth,
+          streetAddress: user.streetaddress,
+          city: user.city,
+          state: user.state,
+          zipCode: user.zipcode,
+          country: user.country,
+          role: user.role,
+          emailVerified: user.emailverified,
+          phoneVerified: user.phoneverified,
+          isVerified: user.isverified,
+          isActive: user.isactive,
+          createdAt: user.createdat
+        }
+      }
+    });
+
+  } catch (error) {
+    console.error('❌ Get profile error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to get user profile'
+    });
+  }
+});
+
+// POST /api/auth/login - User login
+router.post('/login', async (req, res) => {
+  const requestId = crypto.randomUUID();
+  
+  try {
+    console.log('🔐 Login attempt, requestId:', requestId);
+    
+    const { email, password } = req.body;
+
+    if (!email || !password) {
+      return res.status(400).json({
+        success: false,
+        message: 'Email and password required',
+        requestId
+      });
+    }
+
+    // Find user by email
+    const userResult = await database.query(`
+      SELECT userid, username, email, passwordhash, firstname, lastname,
+             role, emailverified, phoneverified, isverified, isactive
+      FROM users
+      WHERE email = @email
+    `, { email });
+
+    if (!userResult.rows || userResult.rows.length === 0) {
+      return res.status(401).json({
+        success: false,
+        message: 'Invalid email or password',
+        requestId
+      });
+    }
+
+    const user = userResult.rows[0];
+
+    // Check password
+    const isValidPassword = await bcrypt.compare(password, user.passwordhash);
+    
+    if (!isValidPassword) {
+      return res.status(401).json({
+        success: false,
+        message: 'Invalid email or password',
+        requestId
+      });
+    }
+
+    // Check if user is active
+    if (!user.isactive) {
+      return res.status(401).json({
+        success: false,
+        message: 'Account is deactivated',
+        requestId
+      });
+    }
+
+    // Generate JWT tokens
+    const tokenPayload = {
+      userId: user.userid,
+      username: user.username,
+      email: user.email,
+      role: user.role
+    };
+
+    const accessToken = jwt.sign(tokenPayload, process.env.JWT_SECRET, { expiresIn: '15m' });
+    const refreshToken = jwt.sign(tokenPayload, process.env.JWT_SECRET, { expiresIn: '30d' });
+    const sessionId = crypto.randomUUID();
+
+    console.log('✅ Login successful for user:', user.username);
+
+    res.status(200).json({
+      success: true,
+      message: 'Login successful',
+      data: {
+        user: {
+          id: user.userid,
+          username: user.username,
+          email: user.email,
+          firstName: user.firstname,
+          lastName: user.lastname,
+          role: user.role,
+          emailVerified: user.emailverified,
+          phoneVerified: user.phoneverified,
+          isVerified: user.isverified,
+          isActive: user.isactive
+        },
+        tokens: {
+          accessToken,
+          refreshToken,
+          sessionId
+        }
+      },
+      requestId
+    });
+
+  } catch (error) {
+    console.error('❌ Login error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Login failed',
+      requestId
+    });
+  }
+});
+
+// POST /api/auth/refresh - Refresh JWT token
+router.post('/refresh', async (req, res) => {
+  try {
+    console.log('🔄 Token refresh request');
+    
+    const { refreshToken } = req.body;
+
+    if (!refreshToken) {
+      return res.status(401).json({
+        success: false,
+        message: 'Refresh token required'
+      });
+    }
+
+    try {
+      const decoded = jwt.verify(refreshToken, process.env.JWT_SECRET);
+      
+      // Generate new tokens
+      const tokenPayload = {
+        userId: decoded.userId,
+        username: decoded.username,
+        email: decoded.email,
+        role: decoded.role
+      };
+
+      const newAccessToken = jwt.sign(tokenPayload, process.env.JWT_SECRET, { expiresIn: '15m' });
+      const newRefreshToken = jwt.sign(tokenPayload, process.env.JWT_SECRET, { expiresIn: '30d' });
+
+      console.log('✅ Token refresh successful for user:', decoded.username);
+
+      res.status(200).json({
+        success: true,
+        data: {
+          tokens: {
+            accessToken: newAccessToken,
+            refreshToken: newRefreshToken
+          }
+        }
+      });
+
+    } catch (jwtError) {
+      console.log('❌ Invalid refresh token:', jwtError.message);
+      res.status(401).json({
+        success: false,
+        message: 'Invalid refresh token'
+      });
+    }
+
+  } catch (error) {
+    console.error('❌ Token refresh error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Token refresh failed'
+    });
+  }
+});
+
+// POST /api/auth/logout - User logout
+router.post('/logout', async (req, res) => {
+  try {
+    console.log('👋 Logout request');
+    
+    // For now, just return success since we're using stateless JWT
+    // In a full implementation, you might want to blacklist the token
+    
+    res.status(200).json({
+      success: true,
+      message: 'Logged out successfully'
+    });
+
+  } catch (error) {
+    console.error('❌ Logout error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Logout failed'
     });
   }
 });
