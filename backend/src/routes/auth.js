@@ -124,8 +124,7 @@ router.post('/register', authRateLimit, catchAsync(async (req, res) => {
     )
   `, {
     userId, username, email, passwordHash, firstName, lastName,
-    dateOfBirth, phoneNumber, streetAddress, city, state, zipCode, country,
-    emailVerificationToken, emailExpires, phoneVerificationCode, phoneExpires
+    dateOfBirth, phoneNumber, streetAddress, city, state, zipCode, country
   });
 
   // Send email verification
