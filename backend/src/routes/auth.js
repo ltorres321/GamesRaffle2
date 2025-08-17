@@ -112,20 +112,24 @@ router.post('/register', authRateLimit, catchAsync(async (req, res) => {
   // Create user
   const userId = uuidv4();
   
-  await database.query(`
+  const result = await database.query(`
     INSERT INTO users (
-      id, username, email, password_hash, first_name, last_name,
+      username, email, password_hash, first_name, last_name,
       date_of_birth, phone_number, street_address, city, state, zip_code, country,
       role, email_verified, phone_verified, is_verified, is_active
     ) VALUES (
-      @userId, @username, @email, @passwordHash, @firstName, @lastName,
+      @username, @email, @passwordHash, @firstName, @lastName,
       @dateOfBirth, @phoneNumber, @streetAddress, @city, @state, @zipCode, @country,
       'user', false, false, false, true
     )
+    RETURNING id
   `, {
-    userId, username, email, passwordHash, firstName, lastName,
+    username, email, passwordHash, firstName, lastName,
     dateOfBirth, phoneNumber, streetAddress, city, state, zipCode, country
   });
+
+  // Get the generated user ID
+  const newUserId = result.rows[0].id;
 
   // Send email verification
   try {
@@ -150,34 +154,34 @@ router.post('/register', authRateLimit, catchAsync(async (req, res) => {
   }
 
   // Generate tokens (user can login but features are limited until verified)
-  const { accessToken, refreshToken, refreshPayload } = authService.generateTokens(userId, email, 'Player');
+  const { accessToken, refreshToken, refreshPayload } = authService.generateTokens(newUserId, email, 'user');
 
   // Calculate refresh token expiry
   const refreshExpiresAt = new Date();
   refreshExpiresAt.setDate(refreshExpiresAt.getDate() + 30); // 30 days
 
   // Store refresh token
-  await authService.storeRefreshToken(userId, refreshToken, refreshPayload.jti, refreshExpiresAt);
+  await authService.storeRefreshToken(newUserId, refreshToken, refreshPayload.jti, refreshExpiresAt);
 
   // Create session
-  const sessionId = await authService.createSession(userId, req);
+  const sessionId = await authService.createSession(newUserId, req);
 
   // Log successful registration
-  logger.logBusinessEvent('user_registered', { userId, email, username }, userId);
-  logger.logAuditEvent('user_create', 'User', userId, { email, username });
+  logger.logBusinessEvent('user_registered', { userId: newUserId, email, username }, newUserId);
+  logger.logAuditEvent('user_create', 'User', newUserId, { email, username });
 
   res.status(201).json({
     success: true,
     message: 'User registered successfully. Please verify your email and phone number to access all features.',
     data: {
       user: {
-        id: userId,
+        id: newUserId,
         username,
         email,
         firstName,
         lastName,
         phoneNumber,
-        role: 'Player',
+        role: 'user',
         emailVerified: false,
         phoneVerified: false,
         isVerified: false,
