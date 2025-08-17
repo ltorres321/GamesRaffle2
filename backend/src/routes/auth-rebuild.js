@@ -128,6 +128,44 @@ router.post('/test-db', async (req, res) => {
   }
 });
 
+// Debug registration INSERT to isolate parameter issue
+router.post('/debug-registration-insert', async (req, res) => {
+  try {
+    console.log('🧪 Testing exact registration INSERT...');
+    
+    // Test the exact INSERT with hardcoded values
+    const result = await database.query(`
+      INSERT INTO users (
+        username, email, passwordhash, firstname, lastname,
+        dateofbirth, phonenumber, streetaddress, city, state, zipcode, country,
+        role, emailverified, phoneverified, isverified, isactive
+      ) VALUES (
+        'debuguser', 'debug@example.com', '$2b$10$hashedpassword123',
+        'Debug', 'User', '1990-01-01', '+1-555-123-4567',
+        '123 Debug St', 'Debug City', 'TX', '12345', 'US',
+        'user', false, false, false, true
+      )
+      RETURNING userid
+    `);
+    
+    console.log('✅ Debug registration insert result:', result);
+    
+    res.status(200).json({
+      success: true,
+      message: 'Debug registration insert successful',
+      result: result
+    });
+  } catch (error) {
+    console.error('❌ Debug registration insert error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Debug registration insert failed',
+      error: error.message,
+      stack: error.stack
+    });
+  }
+});
+
 // Registration endpoint with database integration
 router.post('/register', async (req, res) => {
   const requestId = crypto.randomUUID();
@@ -168,7 +206,7 @@ router.post('/register', async (req, res) => {
     // Check if user already exists
     console.log('🔍 Checking for existing user...');
     const existingUser = await database.query(`
-      SELECT id FROM users
+      SELECT userid FROM users
       WHERE email = @email OR username = @username
     `, { email, username });
 
