@@ -84,9 +84,9 @@ const config = {
   },
   
   cors: {
-    allowedOrigins: process.env.CORS_ORIGINS ? 
-      process.env.CORS_ORIGINS.split(',').map(origin => origin.trim()) : 
-      ['http://localhost:3000', 'http://localhost:3001', 'https://localhost:3000']
+    allowedOrigins: process.env.CORS_ORIGINS ?
+      process.env.CORS_ORIGINS.split(',').map(origin => origin.trim()) :
+      ['http://localhost:3000', 'http://localhost:3001', 'https://localhost:3000', 'https://*.netlify.app']
   },
   
   storage: {
