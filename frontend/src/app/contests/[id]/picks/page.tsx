@@ -1,349 +1,481 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import Header from '@/components/layout/Header'
-import PickBoard from '@/components/picks/PickBoard'
-import { Team, Matchup, Week, Pick } from '@/types'
+import { useParams, useRouter } from 'next/navigation'
+import Link from 'next/link'
+import { useAuth } from '@/contexts/AuthContext'
+import { 
+  ChevronLeftIcon,
+  ClockIcon,
+  CheckCircleIcon,
+  XCircleIcon,
+  ExclamationTriangleIcon,
+  CalendarDaysIcon
+} from '@heroicons/react/24/outline'
 
-// Mock NFL teams data (2024-2025 season)
-const mockTeams: Team[] = [
-  // AFC East
-  { id: '1', name: 'Bills', alias: 'BUF', market: 'Buffalo', fullName: 'Buffalo Bills', primaryColor: '#00338D', secondaryColor: '#C60C30', conference: 'AFC', division: 'East', sportRadarId: 'sr:team:4376' },
-  { id: '2', name: 'Dolphins', alias: 'MIA', market: 'Miami', fullName: 'Miami Dolphins', primaryColor: '#008E97', secondaryColor: '#FC4C02', conference: 'AFC', division: 'East', sportRadarId: 'sr:team:4287' },
-  { id: '3', name: 'Patriots', alias: 'NE', market: 'New England', fullName: 'New England Patriots', primaryColor: '#002244', secondaryColor: '#C60C30', conference: 'AFC', division: 'East', sportRadarId: 'sr:team:4424' },
-  { id: '4', name: 'Jets', alias: 'NYJ', market: 'New York', fullName: 'New York Jets', primaryColor: '#125740', secondaryColor: '#000000', conference: 'AFC', division: 'East', sportRadarId: 'sr:team:4430' },
-  
-  // AFC North
-  { id: '5', name: 'Ravens', alias: 'BAL', market: 'Baltimore', fullName: 'Baltimore Ravens', primaryColor: '#241773', secondaryColor: '#000000', conference: 'AFC', division: 'North', sportRadarId: 'sr:team:4372' },
-  { id: '6', name: 'Bengals', alias: 'CIN', market: 'Cincinnati', fullName: 'Cincinnati Bengals', primaryColor: '#FB4F14', secondaryColor: '#000000', conference: 'AFC', division: 'North', sportRadarId: 'sr:team:4377' },
-  { id: '7', name: 'Browns', alias: 'CLE', market: 'Cleveland', fullName: 'Cleveland Browns', primaryColor: '#311D00', secondaryColor: '#FF3C00', conference: 'AFC', division: 'North', sportRadarId: 'sr:team:4378' },
-  { id: '8', name: 'Steelers', alias: 'PIT', market: 'Pittsburgh', fullName: 'Pittsburgh Steelers', primaryColor: '#FFB612', secondaryColor: '#101820', conference: 'AFC', division: 'North', sportRadarId: 'sr:team:4345' },
-  
-  // AFC South
-  { id: '9', name: 'Texans', alias: 'HOU', market: 'Houston', fullName: 'Houston Texans', primaryColor: '#03202F', secondaryColor: '#A71930', conference: 'AFC', division: 'South', sportRadarId: 'sr:team:4324' },
-  { id: '10', name: 'Colts', alias: 'IND', market: 'Indianapolis', fullName: 'Indianapolis Colts', primaryColor: '#002C5F', secondaryColor: '#A2AAAD', conference: 'AFC', division: 'South', sportRadarId: 'sr:team:4421' },
-  { id: '11', name: 'Jaguars', alias: 'JAX', market: 'Jacksonville', fullName: 'Jacksonville Jaguars', primaryColor: '#101820', secondaryColor: '#D7A22A', conference: 'AFC', division: 'South', sportRadarId: 'sr:team:4386' },
-  { id: '12', name: 'Titans', alias: 'TEN', market: 'Tennessee', fullName: 'Tennessee Titans', primaryColor: '#0C2340', secondaryColor: '#4B92DB', conference: 'AFC', division: 'South', sportRadarId: 'sr:team:4425' },
-  
-  // AFC West
-  { id: '13', name: 'Broncos', alias: 'DEN', market: 'Denver', fullName: 'Denver Broncos', primaryColor: '#FB4F14', secondaryColor: '#002244', conference: 'AFC', division: 'West', sportRadarId: 'sr:team:4380' },
-  { id: '14', name: 'Chiefs', alias: 'KC', market: 'Kansas City', fullName: 'Kansas City Chiefs', primaryColor: '#E31837', secondaryColor: '#FFB81C', conference: 'AFC', division: 'West', sportRadarId: 'sr:team:4381' },
-  { id: '15', name: 'Raiders', alias: 'LV', market: 'Las Vegas', fullName: 'Las Vegas Raiders', primaryColor: '#000000', secondaryColor: '#A5ACAF', conference: 'AFC', division: 'West', sportRadarId: 'sr:team:4285' },
-  { id: '16', name: 'Chargers', alias: 'LAC', market: 'Los Angeles', fullName: 'Los Angeles Chargers', primaryColor: '#0080C6', secondaryColor: '#FFC20E', conference: 'AFC', division: 'West', sportRadarId: 'sr:team:4429' },
-  
-  // NFC East
-  { id: '17', name: 'Cowboys', alias: 'DAL', market: 'Dallas', fullName: 'Dallas Cowboys', primaryColor: '#041E42', secondaryColor: '#869397', conference: 'NFC', division: 'East', sportRadarId: 'sr:team:4391' },
-  { id: '18', name: 'Giants', alias: 'NYG', market: 'New York', fullName: 'New York Giants', primaryColor: '#0B2265', secondaryColor: '#A71930', conference: 'NFC', division: 'East', sportRadarId: 'sr:team:4426' },
-  { id: '19', name: 'Eagles', alias: 'PHI', market: 'Philadelphia', fullName: 'Philadelphia Eagles', primaryColor: '#004C54', secondaryColor: '#A5ACAF', conference: 'NFC', division: 'East', sportRadarId: 'sr:team:4428' },
-  { id: '20', name: 'Commanders', alias: 'WAS', market: 'Washington', fullName: 'Washington Commanders', primaryColor: '#5A1414', secondaryColor: '#FFB612', conference: 'NFC', division: 'East', sportRadarId: 'sr:team:4432' },
-  
-  // NFC North
-  { id: '21', name: 'Bears', alias: 'CHI', market: 'Chicago', fullName: 'Chicago Bears', primaryColor: '#0B162A', secondaryColor: '#C83803', conference: 'NFC', division: 'North', sportRadarId: 'sr:team:4388' },
-  { id: '22', name: 'Lions', alias: 'DET', market: 'Detroit', fullName: 'Detroit Lions', primaryColor: '#0076B6', secondaryColor: '#B0B7BC', conference: 'NFC', division: 'North', sportRadarId: 'sr:team:4391' },
-  { id: '23', name: 'Packers', alias: 'GB', market: 'Green Bay', fullName: 'Green Bay Packers', primaryColor: '#203731', secondaryColor: '#FFB612', conference: 'NFC', division: 'North', sportRadarId: 'sr:team:4419' },
-  { id: '24', name: 'Vikings', alias: 'MIN', market: 'Minnesota', fullName: 'Minnesota Vikings', primaryColor: '#4F2683', secondaryColor: '#FFC62F', conference: 'NFC', division: 'North', sportRadarId: 'sr:team:4423' },
-  
-  // NFC South
-  { id: '25', name: 'Falcons', alias: 'ATL', market: 'Atlanta', fullName: 'Atlanta Falcons', primaryColor: '#A71930', secondaryColor: '#000000', conference: 'NFC', division: 'South', sportRadarId: 'sr:team:4361' },
-  { id: '26', name: 'Panthers', alias: 'CAR', market: 'Carolina', fullName: 'Carolina Panthers', primaryColor: '#0085CA', secondaryColor: '#101820', conference: 'NFC', division: 'South', sportRadarId: 'sr:team:4385' },
-  { id: '27', name: 'Saints', alias: 'NO', market: 'New Orleans', fullName: 'New Orleans Saints', primaryColor: '#101820', secondaryColor: '#D3BC8D', conference: 'NFC', division: 'South', sportRadarId: 'sr:team:4425' },
-  { id: '28', name: 'Buccaneers', alias: 'TB', market: 'Tampa Bay', fullName: 'Tampa Bay Buccaneers', primaryColor: '#D50A0A', secondaryColor: '#FF7900', conference: 'NFC', division: 'South', sportRadarId: 'sr:team:4418' },
-  
-  // NFC West
-  { id: '29', name: 'Cardinals', alias: 'ARI', market: 'Arizona', fullName: 'Arizona Cardinals', primaryColor: '#97233F', secondaryColor: '#000000', conference: 'NFC', division: 'West', sportRadarId: 'sr:team:4387' },
-  { id: '30', name: 'Rams', alias: 'LAR', market: 'Los Angeles', fullName: 'Los Angeles Rams', primaryColor: '#003594', secondaryColor: '#FFA300', conference: 'NFC', division: 'West', sportRadarId: 'sr:team:4387' },
-  { id: '31', name: '49ers', alias: 'SF', market: 'San Francisco', fullName: 'San Francisco 49ers', primaryColor: '#AA0000', secondaryColor: '#B3995D', conference: 'NFC', division: 'West', sportRadarId: 'sr:team:4398' },
-  { id: '32', name: 'Seahawks', alias: 'SEA', market: 'Seattle', fullName: 'Seattle Seahawks', primaryColor: '#002244', secondaryColor: '#69BE28', conference: 'NFC', division: 'West', sportRadarId: 'sr:team:4400' }
-]
-
-// Mock Week 1 matchups for testing - Full NFL Week 1 Schedule (16 games)
-const mockMatchups: Matchup[] = [
-  {
-    id: '1',
-    weekId: '1',
-    week: { id: '1', number: 1, season: 2024, lockTime: '2024-09-08T17:00:00Z', isActive: true, isCompleted: false, matchups: [] },
-    teamA: mockTeams.find(t => t.alias === 'DAL')!,
-    teamB: mockTeams.find(t => t.alias === 'PHI')!,
-    teamAId: '17',
-    teamBId: '19',
-    startTime: '2024-09-08T20:20:00Z',
-    status: 'scheduled',
-    isCompleted: false
-  },
-  {
-    id: '2',
-    weekId: '1',
-    week: { id: '1', number: 1, season: 2024, lockTime: '2024-09-08T17:00:00Z', isActive: true, isCompleted: false, matchups: [] },
-    teamA: mockTeams.find(t => t.alias === 'PIT')!,
-    teamB: mockTeams.find(t => t.alias === 'NYJ')!,
-    teamAId: '8',
-    teamBId: '4',
-    startTime: '2024-09-08T17:00:00Z',
-    status: 'scheduled',
-    isCompleted: false
-  },
-  {
-    id: '3',
-    weekId: '1',
-    week: { id: '1', number: 1, season: 2024, lockTime: '2024-09-08T17:00:00Z', isActive: true, isCompleted: false, matchups: [] },
-    teamA: mockTeams.find(t => t.alias === 'KC')!,
-    teamB: mockTeams.find(t => t.alias === 'LAC')!,
-    teamAId: '14',
-    teamBId: '16',
-    startTime: '2024-09-08T17:00:00Z',
-    status: 'scheduled',
-    isCompleted: false
-  },
-  {
-    id: '4',
-    weekId: '1',
-    week: { id: '1', number: 1, season: 2024, lockTime: '2024-09-08T17:00:00Z', isActive: true, isCompleted: false, matchups: [] },
-    teamA: mockTeams.find(t => t.alias === 'MIA')!,
-    teamB: mockTeams.find(t => t.alias === 'BUF')!,
-    teamAId: '2',
-    teamBId: '1',
-    startTime: '2024-09-08T17:00:00Z',
-    status: 'scheduled',
-    isCompleted: false
-  },
-  {
-    id: '5',
-    weekId: '1',
-    week: { id: '1', number: 1, season: 2024, lockTime: '2024-09-08T17:00:00Z', isActive: true, isCompleted: false, matchups: [] },
-    teamA: mockTeams.find(t => t.alias === 'CIN')!,
-    teamB: mockTeams.find(t => t.alias === 'BAL')!,
-    teamAId: '6',
-    teamBId: '5',
-    startTime: '2024-09-08T17:00:00Z',
-    status: 'scheduled',
-    isCompleted: false
-  },
-  {
-    id: '6',
-    weekId: '1',
-    week: { id: '1', number: 1, season: 2024, lockTime: '2024-09-08T17:00:00Z', isActive: true, isCompleted: false, matchups: [] },
-    teamA: mockTeams.find(t => t.alias === 'CLE')!,
-    teamB: mockTeams.find(t => t.alias === 'HOU')!,
-    teamAId: '7',
-    teamBId: '9',
-    startTime: '2024-09-08T17:00:00Z',
-    status: 'scheduled',
-    isCompleted: false
-  },
-  {
-    id: '7',
-    weekId: '1',
-    week: { id: '1', number: 1, season: 2024, lockTime: '2024-09-08T17:00:00Z', isActive: true, isCompleted: false, matchups: [] },
-    teamA: mockTeams.find(t => t.alias === 'IND')!,
-    teamB: mockTeams.find(t => t.alias === 'JAX')!,
-    teamAId: '10',
-    teamBId: '11',
-    startTime: '2024-09-08T17:00:00Z',
-    status: 'scheduled',
-    isCompleted: false
-  },
-  {
-    id: '8',
-    weekId: '1',
-    week: { id: '1', number: 1, season: 2024, lockTime: '2024-09-08T17:00:00Z', isActive: true, isCompleted: false, matchups: [] },
-    teamA: mockTeams.find(t => t.alias === 'TEN')!,
-    teamB: mockTeams.find(t => t.alias === 'DEN')!,
-    teamAId: '12',
-    teamBId: '13',
-    startTime: '2024-09-08T17:00:00Z',
-    status: 'scheduled',
-    isCompleted: false
-  },
-  {
-    id: '9',
-    weekId: '1',
-    week: { id: '1', number: 1, season: 2024, lockTime: '2024-09-08T17:00:00Z', isActive: true, isCompleted: false, matchups: [] },
-    teamA: mockTeams.find(t => t.alias === 'LV')!,
-    teamB: mockTeams.find(t => t.alias === 'NYG')!,
-    teamAId: '15',
-    teamBId: '18',
-    startTime: '2024-09-08T17:00:00Z',
-    status: 'scheduled',
-    isCompleted: false
-  },
-  {
-    id: '10',
-    weekId: '1',
-    week: { id: '1', number: 1, season: 2024, lockTime: '2024-09-08T17:00:00Z', isActive: true, isCompleted: false, matchups: [] },
-    teamA: mockTeams.find(t => t.alias === 'WAS')!,
-    teamB: mockTeams.find(t => t.alias === 'CHI')!,
-    teamAId: '20',
-    teamBId: '21',
-    startTime: '2024-09-08T17:00:00Z',
-    status: 'scheduled',
-    isCompleted: false
-  },
-  {
-    id: '11',
-    weekId: '1',
-    week: { id: '1', number: 1, season: 2024, lockTime: '2024-09-08T17:00:00Z', isActive: true, isCompleted: false, matchups: [] },
-    teamA: mockTeams.find(t => t.alias === 'DET')!,
-    teamB: mockTeams.find(t => t.alias === 'GB')!,
-    teamAId: '22',
-    teamBId: '23',
-    startTime: '2024-09-08T17:00:00Z',
-    status: 'scheduled',
-    isCompleted: false
-  },
-  {
-    id: '12',
-    weekId: '1',
-    week: { id: '1', number: 1, season: 2024, lockTime: '2024-09-08T17:00:00Z', isActive: true, isCompleted: false, matchups: [] },
-    teamA: mockTeams.find(t => t.alias === 'MIN')!,
-    teamB: mockTeams.find(t => t.alias === 'ATL')!,
-    teamAId: '24',
-    teamBId: '25',
-    startTime: '2024-09-08T17:00:00Z',
-    status: 'scheduled',
-    isCompleted: false
-  },
-  {
-    id: '13',
-    weekId: '1',
-    week: { id: '1', number: 1, season: 2024, lockTime: '2024-09-08T17:00:00Z', isActive: true, isCompleted: false, matchups: [] },
-    teamA: mockTeams.find(t => t.alias === 'CAR')!,
-    teamB: mockTeams.find(t => t.alias === 'NO')!,
-    teamAId: '26',
-    teamBId: '27',
-    startTime: '2024-09-08T17:00:00Z',
-    status: 'scheduled',
-    isCompleted: false
-  },
-  {
-    id: '14',
-    weekId: '1',
-    week: { id: '1', number: 1, season: 2024, lockTime: '2024-09-08T17:00:00Z', isActive: true, isCompleted: false, matchups: [] },
-    teamA: mockTeams.find(t => t.alias === 'TB')!,
-    teamB: mockTeams.find(t => t.alias === 'ARI')!,
-    teamAId: '28',
-    teamBId: '29',
-    startTime: '2024-09-08T17:00:00Z',
-    status: 'scheduled',
-    isCompleted: false
-  },
-  {
-    id: '15',
-    weekId: '1',
-    week: { id: '1', number: 1, season: 2024, lockTime: '2024-09-08T17:00:00Z', isActive: true, isCompleted: false, matchups: [] },
-    teamA: mockTeams.find(t => t.alias === 'LAR')!,
-    teamB: mockTeams.find(t => t.alias === 'SF')!,
-    teamAId: '30',
-    teamBId: '31',
-    startTime: '2024-09-08T17:00:00Z',
-    status: 'scheduled',
-    isCompleted: false
-  },
-  {
-    id: '16',
-    weekId: '1',
-    week: { id: '1', number: 1, season: 2024, lockTime: '2024-09-08T17:00:00Z', isActive: true, isCompleted: false, matchups: [] },
-    teamA: mockTeams.find(t => t.alias === 'SEA')!,
-    teamB: mockTeams.find(t => t.alias === 'NE')!,
-    teamAId: '32',
-    teamBId: '3',
-    startTime: '2024-09-08T17:00:00Z',
-    status: 'scheduled',
-    isCompleted: false
-  }
-]
-
-interface ContestPicksPageProps {
-  params: { id: string }
+interface NFLTeam {
+  teamId: string
+  alias: string
+  name: string
+  city: string
+  conference: 'AFC' | 'NFC'
+  division: string
+  logo?: string
 }
 
-export default function ContestPicksPage({ params }: ContestPicksPageProps) {
+interface NFLGame {
+  gameId: string
+  week: number
+  homeTeam: NFLTeam
+  awayTeam: NFLTeam
+  scheduledTime: string
+  status: 'scheduled' | 'in_progress' | 'final'
+  homeScore?: number
+  awayScore?: number
+}
+
+interface PlayerPick {
+  week: number
+  teamId: string
+  teamAlias: string
+  teamName: string
+  isLocked: boolean
+  isCorrect?: boolean
+}
+
+interface WeeklyPickData {
+  week: number
+  games: NFLGame[]
+  currentPicks: PlayerPick[]
+  usedTeams: string[]
+  pickDeadline: string
+  requireTwoPicks: boolean
+}
+
+export default function WeeklyPicks() {
+  const params = useParams()
+  const router = useRouter()
+  const { isAuthenticated, user } = useAuth()
+  const gameId = params?.id as string
+
+  const [weekData, setWeekData] = useState<WeeklyPickData | null>(null)
+  const [selectedWeek, setSelectedWeek] = useState<number>(8) // Current week
   const [selectedTeams, setSelectedTeams] = useState<string[]>([])
-  const [lockedWeeks, setLockedWeeks] = useState<number[]>([])
-  const [currentWeek, setCurrentWeek] = useState(1)
-  const contestId = params.id
+  const [loading, setLoading] = useState(true)
+  const [submitting, setSubmitting] = useState(false)
+  const [error, setError] = useState<string | null>(null)
 
-  // Mock current picks - in real app, fetch from API
-  const [existingPicks, setExistingPicks] = useState<Pick[]>([])
+  useEffect(() => {
+    if (gameId) {
+      fetchWeekData(selectedWeek)
+    }
+  }, [gameId, selectedWeek])
 
-  const handleTeamSelect = (teamId: string, weekNumber: number) => {
-    if (lockedWeeks.includes(weekNumber)) return
+  const fetchWeekData = async (week: number) => {
+    try {
+      setLoading(true)
+      // Mock data - replace with actual API call
+      const mockTeams: NFLTeam[] = [
+        { teamId: '1', alias: 'KC', name: 'Chiefs', city: 'Kansas City', conference: 'AFC', division: 'West' },
+        { teamId: '2', alias: 'BUF', name: 'Bills', city: 'Buffalo', conference: 'AFC', division: 'East' },
+        { teamId: '3', alias: 'SF', name: '49ers', city: 'San Francisco', conference: 'NFC', division: 'West' },
+        { teamId: '4', alias: 'DAL', name: 'Cowboys', city: 'Dallas', conference: 'NFC', division: 'East' },
+        { teamId: '5', alias: 'MIA', name: 'Dolphins', city: 'Miami', conference: 'AFC', division: 'East' },
+        { teamId: '6', alias: 'LAR', name: 'Rams', city: 'Los Angeles', conference: 'NFC', division: 'West' },
+        { teamId: '7', alias: 'BAL', name: 'Ravens', city: 'Baltimore', conference: 'AFC', division: 'North' },
+        { teamId: '8', alias: 'GB', name: 'Packers', city: 'Green Bay', conference: 'NFC', division: 'North' }
+      ]
 
-    const maxPicksForWeek = weekNumber >= 12 ? 2 : 1
-    const currentWeekPicks = selectedTeams.filter(id => 
-      mockMatchups.some(m => 
-        m.week.number === weekNumber && (m.teamAId === id || m.teamBId === id)
-      )
-    )
+      const mockGames: NFLGame[] = [
+        {
+          gameId: 'game1',
+          week,
+          homeTeam: mockTeams[0], // KC
+          awayTeam: mockTeams[1], // BUF
+          scheduledTime: '2024-10-27T20:20:00Z',
+          status: 'scheduled'
+        },
+        {
+          gameId: 'game2',
+          week,
+          homeTeam: mockTeams[2], // SF
+          awayTeam: mockTeams[3], // DAL
+          scheduledTime: '2024-10-27T20:25:00Z',
+          status: 'scheduled'
+        },
+        {
+          gameId: 'game3',
+          week,
+          homeTeam: mockTeams[4], // MIA
+          awayTeam: mockTeams[5], // LAR
+          scheduledTime: '2024-10-27T17:00:00Z',
+          status: 'scheduled'
+        },
+        {
+          gameId: 'game4',
+          week,
+          homeTeam: mockTeams[6], // BAL
+          awayTeam: mockTeams[7], // GB
+          scheduledTime: '2024-10-27T13:00:00Z',
+          status: 'scheduled'
+        }
+      ]
 
-    if (currentWeekPicks.length < maxPicksForWeek) {
-      if (!selectedTeams.includes(teamId)) {
-        setSelectedTeams(prev => [...prev, teamId])
+      const mockData: WeeklyPickData = {
+        week,
+        games: mockGames,
+        currentPicks: [],
+        usedTeams: ['TB', 'NE', 'PIT'], // Previously used teams
+        pickDeadline: '2024-10-27T13:00:00Z',
+        requireTwoPicks: week >= 12
       }
-    } else if (selectedTeams.includes(teamId)) {
-      // Remove if already selected
+
+      setWeekData(mockData)
+      setSelectedTeams([])
+    } catch (err) {
+      console.error('Failed to fetch week data:', err)
+      setError('Failed to load week data')
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  const handleTeamSelection = (teamId: string, teamAlias: string) => {
+    if (weekData?.usedTeams.includes(teamAlias)) {
+      alert(`You've already used ${teamAlias} this season!`)
+      return
+    }
+
+    const maxPicks = weekData?.requireTwoPicks ? 2 : 1
+    
+    if (selectedTeams.includes(teamId)) {
+      // Deselect team
       setSelectedTeams(prev => prev.filter(id => id !== teamId))
+    } else if (selectedTeams.length < maxPicks) {
+      // Select team
+      setSelectedTeams(prev => [...prev, teamId])
+    } else {
+      // Replace selection if at max
+      if (maxPicks === 1) {
+        setSelectedTeams([teamId])
+      } else {
+        alert(`You can only select ${maxPicks} teams for this week`)
+      }
     }
   }
 
   const handleSubmitPicks = async () => {
-    // TODO: Submit picks to API
-    console.log('Submitting picks:', selectedTeams)
-    // Show success message
-    // Navigate back or update UI
+    if (!weekData || selectedTeams.length === 0) return
+
+    const requiredPicks = weekData.requireTwoPicks ? 2 : 1
+    if (selectedTeams.length !== requiredPicks) {
+      alert(`You must select exactly ${requiredPicks} team${requiredPicks > 1 ? 's' : ''} for this week`)
+      return
+    }
+
+    try {
+      setSubmitting(true)
+      // TODO: Implement API call to submit picks
+      console.log('Submitting picks:', selectedTeams)
+      
+      // Mock successful submission
+      await new Promise(resolve => setTimeout(resolve, 2000))
+      
+      alert('Picks submitted successfully!')
+      router.push(`/contests/${gameId}`)
+    } catch (err) {
+      console.error('Failed to submit picks:', err)
+      alert('Failed to submit picks. Please try again.')
+    } finally {
+      setSubmitting(false)
+    }
+  }
+
+  const formatGameTime = (scheduledTime: string) => {
+    const date = new Date(scheduledTime)
+    return date.toLocaleDateString('en-US', {
+      weekday: 'short',
+      month: 'short',
+      day: 'numeric',
+      hour: 'numeric',
+      minute: '2-digit'
+    })
+  }
+
+  const isPickDeadlinePassed = () => {
+    if (!weekData) return false
+    return new Date() > new Date(weekData.pickDeadline)
+  }
+
+  const getTeamFromGame = (game: NFLGame, teamId: string): NFLTeam | null => {
+    if (game.homeTeam.teamId === teamId) return game.homeTeam
+    if (game.awayTeam.teamId === teamId) return game.awayTeam
+    return null
+  }
+
+  if (!isAuthenticated) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-gray-900 via-green-900 to-gray-900 p-8">
+        <div className="max-w-4xl mx-auto text-center">
+          <h1 className="text-2xl font-bold text-white mb-4">Access Denied</h1>
+          <p className="text-gray-300 mb-6">You must be logged in to make picks.</p>
+          <Link href="/auth/login" className="bg-primary-600 hover:bg-primary-700 text-white px-6 py-3 rounded-lg">
+            Log In
+          </Link>
+        </div>
+      </div>
+    )
+  }
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-gray-900 via-green-900 to-gray-900 p-8">
+        <div className="max-w-4xl mx-auto">
+          <div className="text-center text-white">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-white mx-auto"></div>
+            <p className="mt-4">Loading week data...</p>
+          </div>
+        </div>
+      </div>
+    )
+  }
+
+  if (error || !weekData) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-gray-900 via-green-900 to-gray-900 p-8">
+        <div className="max-w-4xl mx-auto text-center">
+          <h1 className="text-2xl font-bold text-white mb-4">Error Loading Data</h1>
+          <p className="text-gray-300 mb-6">{error || 'Failed to load week data'}</p>
+          <Link href={`/contests/${gameId}`} className="bg-primary-600 hover:bg-primary-700 text-white px-6 py-3 rounded-lg">
+            Back to Contest
+          </Link>
+        </div>
+      </div>
+    )
   }
 
   return (
-    <div className="min-h-screen bg-dark-900">
-      <Header />
-      
-      <main className="container mx-auto px-4 py-8">
-        {/* Contest Header */}
-        <div className="mb-8">
-          <div className="flex items-center justify-between mb-4">
+    <div className="min-h-screen bg-gradient-to-br from-gray-900 via-green-900 to-gray-900 p-8">
+      <div className="max-w-4xl mx-auto">
+        {/* Header */}
+        <div className="flex items-center justify-between mb-8">
+          <div className="flex items-center">
+            <Link 
+              href={`/contests/${gameId}`}
+              className="flex items-center text-gray-400 hover:text-white mr-4"
+            >
+              <ChevronLeftIcon className="h-5 w-5 mr-1" />
+              Back to Contest
+            </Link>
             <div>
-              <h1 className="text-3xl font-bold text-white mb-2">Make Your Picks</h1>
-              <p className="text-gray-400">Select your team for Week {currentWeek}</p>
-            </div>
-            <div className="text-right">
-              <div className="bg-red-500/20 text-red-400 px-4 py-2 rounded-lg border border-red-500/30">
-                <p className="text-sm font-semibold">Picks lock in</p>
-                <p className="text-lg font-bold">2h 45m</p>
-              </div>
+              <h1 className="text-3xl font-bold text-white">Week {weekData.week} Picks</h1>
+              <p className="text-gray-300">
+                Select {weekData.requireTwoPicks ? 'TWO' : 'ONE'} team{weekData.requireTwoPicks ? 's' : ''} to win this week
+              </p>
             </div>
           </div>
           
-          {/* Warning Banner */}
-          <div className="bg-gold-500/20 border border-gold-500/30 rounded-lg p-4 mb-6">
-            <p className="text-gold-400 font-semibold text-center">
-              🚨 Pick one team to WIN. Mon 8:20 PM • Make your picks
-            </p>
+          {/* Week Navigation */}
+          <div className="flex items-center space-x-2">
+            <button
+              onClick={() => setSelectedWeek(prev => Math.max(1, prev - 1))}
+              disabled={selectedWeek <= 1}
+              className="px-3 py-2 bg-gray-700 text-white rounded-lg disabled:opacity-50 hover:bg-gray-600"
+            >
+              ←
+            </button>
+            <span className="px-4 py-2 bg-gray-800 text-white rounded-lg font-medium">
+              Week {selectedWeek}
+            </span>
+            <button
+              onClick={() => setSelectedWeek(prev => Math.min(18, prev + 1))}
+              disabled={selectedWeek >= 18}
+              className="px-3 py-2 bg-gray-700 text-white rounded-lg disabled:opacity-50 hover:bg-gray-600"
+            >
+              →
+            </button>
           </div>
         </div>
 
-        {/* Pick Board */}
-        <PickBoard
-          matchups={mockMatchups}
-          selectedTeams={selectedTeams}
-          onTeamSelect={handleTeamSelect}
-          currentWeek={currentWeek}
-          lockedWeeks={lockedWeeks}
-          existingPicks={existingPicks}
-        />
+        {/* Pick Deadline Alert */}
+        <div className={`p-4 rounded-lg mb-6 border ${
+          isPickDeadlinePassed() 
+            ? 'bg-red-800 border-red-600' 
+            : 'bg-blue-800 border-blue-600'
+        }`}>
+          <div className="flex items-center">
+            <ClockIcon className="h-6 w-6 mr-3" />
+            <div>
+              <h3 className="font-semibold text-white">
+                {isPickDeadlinePassed() ? 'Pick Deadline Passed' : 'Pick Deadline'}
+              </h3>
+              <p className="text-sm text-gray-300">
+                {formatGameTime(weekData.pickDeadline)} - 
+                {isPickDeadlinePassed() ? ' No more picks accepted' : ' Submit your picks before this time'}
+              </p>
+            </div>
+          </div>
+        </div>
 
-        {/* Action Buttons */}
-        <div className="flex justify-center space-x-4 mt-8">
-          <button className="btn-secondary">
-            Preview Picks
-          </button>
-          <button 
+        {/* Used Teams Alert */}
+        {weekData.usedTeams.length > 0 && (
+          <div className="bg-yellow-800 border border-yellow-600 p-4 rounded-lg mb-6">
+            <div className="flex items-center">
+              <ExclamationTriangleIcon className="h-6 w-6 mr-3" />
+              <div>
+                <h3 className="font-semibold text-white">Teams Already Used</h3>
+                <p className="text-sm text-gray-300">
+                  You cannot pick these teams again: {weekData.usedTeams.join(', ')}
+                </p>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Games Grid */}
+        <div className="grid gap-4 mb-8">
+          {weekData.games.map(game => (
+            <div key={game.gameId} className="bg-gray-800 rounded-lg border border-gray-700 overflow-hidden">
+              <div className="p-4">
+                <div className="flex items-center justify-between mb-4">
+                  <div className="flex items-center text-gray-400">
+                    <CalendarDaysIcon className="h-5 w-5 mr-2" />
+                    <span className="text-sm">{formatGameTime(game.scheduledTime)}</span>
+                  </div>
+                  <span className="text-xs text-gray-500 uppercase tracking-wide">
+                    {game.status.replace('_', ' ')}
+                  </span>
+                </div>
+
+                <div className="grid grid-cols-2 gap-4">
+                  {/* Away Team */}
+                  <button
+                    onClick={() => handleTeamSelection(game.awayTeam.teamId, game.awayTeam.alias)}
+                    disabled={isPickDeadlinePassed() || weekData.usedTeams.includes(game.awayTeam.alias)}
+                    className={`p-4 rounded-lg border-2 transition-all ${
+                      selectedTeams.includes(game.awayTeam.teamId)
+                        ? 'border-gold-500 bg-gold-500/20'
+                        : weekData.usedTeams.includes(game.awayTeam.alias)
+                        ? 'border-red-500 bg-red-500/20 opacity-50 cursor-not-allowed'
+                        : 'border-gray-600 hover:border-gray-500 cursor-pointer'
+                    }`}
+                  >
+                    <div className="flex items-center justify-between">
+                      <div className="text-left">
+                        <div className="flex items-center mb-2">
+                          <span className="text-lg font-bold text-white mr-2">
+                            {game.awayTeam.alias}
+                          </span>
+                          {weekData.usedTeams.includes(game.awayTeam.alias) && (
+                            <XCircleIcon className="h-5 w-5 text-red-400" />
+                          )}
+                          {selectedTeams.includes(game.awayTeam.teamId) && (
+                            <CheckCircleIcon className="h-5 w-5 text-gold-500" />
+                          )}
+                        </div>
+                        <p className="text-gray-300 text-sm">{game.awayTeam.city} {game.awayTeam.name}</p>
+                        <p className="text-gray-400 text-xs">{game.awayTeam.conference} {game.awayTeam.division}</p>
+                      </div>
+                      <span className="text-gray-400 text-sm">@</span>
+                    </div>
+                  </button>
+
+                  {/* Home Team */}
+                  <button
+                    onClick={() => handleTeamSelection(game.homeTeam.teamId, game.homeTeam.alias)}
+                    disabled={isPickDeadlinePassed() || weekData.usedTeams.includes(game.homeTeam.alias)}
+                    className={`p-4 rounded-lg border-2 transition-all ${
+                      selectedTeams.includes(game.homeTeam.teamId)
+                        ? 'border-gold-500 bg-gold-500/20'
+                        : weekData.usedTeams.includes(game.homeTeam.alias)
+                        ? 'border-red-500 bg-red-500/20 opacity-50 cursor-not-allowed'
+                        : 'border-gray-600 hover:border-gray-500 cursor-pointer'
+                    }`}
+                  >
+                    <div className="flex items-center justify-between">
+                      <span className="text-gray-400 text-sm">vs</span>
+                      <div className="text-right">
+                        <div className="flex items-center justify-end mb-2">
+                          {selectedTeams.includes(game.homeTeam.teamId) && (
+                            <CheckCircleIcon className="h-5 w-5 text-gold-500 mr-2" />
+                          )}
+                          {weekData.usedTeams.includes(game.homeTeam.alias) && (
+                            <XCircleIcon className="h-5 w-5 text-red-400 mr-2" />
+                          )}
+                          <span className="text-lg font-bold text-white">
+                            {game.homeTeam.alias}
+                          </span>
+                        </div>
+                        <p className="text-gray-300 text-sm">{game.homeTeam.city} {game.homeTeam.name}</p>
+                        <p className="text-gray-400 text-xs">{game.homeTeam.conference} {game.homeTeam.division}</p>
+                      </div>
+                    </div>
+                  </button>
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
+
+        {/* Selected Picks Summary */}
+        {selectedTeams.length > 0 && (
+          <div className="bg-gray-800 rounded-lg p-6 border border-gray-700 mb-8">
+            <h3 className="text-xl font-semibold text-white mb-4">Your Picks</h3>
+            <div className="space-y-2">
+              {selectedTeams.map((teamId, index) => {
+                const game = weekData.games.find(g => 
+                  g.homeTeam.teamId === teamId || g.awayTeam.teamId === teamId
+                )
+                const team = game ? getTeamFromGame(game, teamId) : null
+                
+                return team ? (
+                  <div key={teamId} className="flex items-center justify-between py-2">
+                    <div className="flex items-center">
+                      <span className="text-gold-500 font-bold mr-3">
+                        Pick {index + 1}:
+                      </span>
+                      <span className="text-white font-medium">
+                        {team.city} {team.name} ({team.alias})
+                      </span>
+                    </div>
+                    <span className="text-gray-400 text-sm">
+                      {game ? formatGameTime(game.scheduledTime) : 'N/A'}
+                    </span>
+                  </div>
+                ) : null
+              })}
+            </div>
+          </div>
+        )}
+
+        {/* Submit Button */}
+        <div className="flex justify-center">
+          <button
             onClick={handleSubmitPicks}
-            className="btn-primary"
-            disabled={selectedTeams.length === 0}
+            disabled={
+              submitting || 
+              isPickDeadlinePassed() || 
+              selectedTeams.length !== (weekData.requireTwoPicks ? 2 : 1)
+            }
+            className={`px-8 py-3 rounded-lg font-semibold transition-colors ${
+              submitting || 
+              isPickDeadlinePassed() || 
+              selectedTeams.length !== (weekData.requireTwoPicks ? 2 : 1)
+                ? 'bg-gray-600 text-gray-400 cursor-not-allowed'
+                : 'bg-gold-500 hover:bg-gold-600 text-gray-900'
+            }`}
           >
-            Submit Picks
+            {submitting ? (
+              <div className="flex items-center">
+                <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-current mr-2"></div>
+                Submitting Picks...
+              </div>
+            ) : (
+              `Submit ${weekData.requireTwoPicks ? 'Two' : 'One'} Pick${weekData.requireTwoPicks ? 's' : ''}`
+            )}
           </button>
         </div>
-      </main>
+      </div>
     </div>
   )
 }
