@@ -3,12 +3,12 @@ const logger = require('../utils/logger');
 const arangoDbService = require('./arangoDbService');
 
 /**
- * Service for loading 2024 NFL season historical data for testing
- * Primary: ArangoDB analytics database with accurate historical data
+ * Service for loading NFL season historical data
+ * Primary: ArangoDB analytics database with accurate historical data (2006-2023)
  * Fallback: Static 2024 season data for offline development
  * Database: PostgreSQL for NFL Survivor game data storage
  */
-class NFL2024DataService {
+class NFLDataService {
     constructor() {
         this.pool = new Pool({
             connectionString: process.env.DATABASE_URL,
@@ -789,4 +789,4 @@ class NFL2024DataService {
     }
 }
 
-module.exports = new NFL2024DataService();
+module.exports = new NFLDataService();

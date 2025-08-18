@@ -1,6 +1,6 @@
 const express = require('express');
 const router = express.Router();
-const nfl2024DataService = require('../services/nfl2024DataService');
+const nflDataService = require('../services/nflDataService');
 const survivorGameService = require('../services/survivorGameService');
 const { authenticate } = require('../middleware/auth');
 const logger = require('../utils/logger');
@@ -27,7 +27,7 @@ router.post('/admin/load-2024-data', authenticate, async (req, res) => {
             });
         }
 
-        const result = await nfl2024DataService.loadEnhanced2024SeasonData();
+        const result = await nflDataService.loadEnhanced2024SeasonData();
         
         res.json({
             success: true,
@@ -58,7 +58,7 @@ router.get('/admin/stats', authenticate, async (req, res) => {
             });
         }
 
-        const stats = await nfl2024DataService.getStats();
+        const stats = await nflDataService.getStats();
         
         res.json({
             success: true,
@@ -88,7 +88,7 @@ router.post('/admin/load-arango-data', authenticate, async (req, res) => {
             });
         }
 
-        const result = await nfl2024DataService.loadFromArangoDB();
+        const result = await nflDataService.loadFromArangoDB();
         
         res.json({
             success: true,
@@ -119,7 +119,7 @@ router.get('/admin/test-arango', authenticate, async (req, res) => {
             });
         }
 
-        const result = await nfl2024DataService.testArangoConnection();
+        const result = await nflDataService.testArangoConnection();
         
         res.json({
             success: result.success,
@@ -142,7 +142,7 @@ router.get('/admin/test-arango', authenticate, async (req, res) => {
  */
 router.get('/temp-test-arango', async (req, res) => {
     try {
-        const result = await nfl2024DataService.testArangoConnection();
+        const result = await nflDataService.testArangoConnection();
         
         res.json({
             success: result.success,
@@ -165,7 +165,7 @@ router.get('/temp-test-arango', async (req, res) => {
  */
 router.post('/temp-load-arango', async (req, res) => {
     try {
-        const result = await nfl2024DataService.loadFromArangoDB();
+        const result = await nflDataService.loadFromArangoDB();
         
         res.json({
             success: true,
@@ -278,7 +278,7 @@ router.post('/temp-load-season', async (req, res) => {
         logger.info(`Retrieved ${arangoGames.length} games from ${season}, converting for PostgreSQL...`);
         
         // Load team mappings first
-        await nfl2024DataService.loadTeamMappings();
+        await nflDataService.loadTeamMappings();
 
         // Convert and load games
         let gamesInserted = 0;
@@ -286,7 +286,7 @@ router.post('/temp-load-season', async (req, res) => {
         
         for (const game of arangoGames) {
             try {
-                await nfl2024DataService.insertArangoGame({
+                await nflDataService.insertArangoGame({
                     ...game,
                     // Override season if we're testing with different year
                     week: game.week,
@@ -344,7 +344,7 @@ router.get('/admin/arango/week/:week', authenticate, async (req, res) => {
         }
 
         const { week } = req.params;
-        const games = await nfl2024DataService.getArangoWeekGames(parseInt(week));
+        const games = await nflDataService.getArangoWeekGames(parseInt(week));
         
         res.json({
             success: true,
@@ -496,7 +496,7 @@ router.get('/nfl/week/:week', async (req, res) => {
         const { week } = req.params;
         const season = req.query.season || 2024;
         
-        const games = await nfl2024DataService.getWeekGames(parseInt(week), parseInt(season));
+        const games = await nflDataService.getWeekGames(parseInt(week), parseInt(season));
         
         res.json({
             success: true,
@@ -839,7 +839,7 @@ router.get('/games/:gameId/my-status', authenticate, async (req, res) => {
  */
 router.get('/health', async (req, res) => {
     try {
-        const stats = await nfl2024DataService.getStats();
+        const stats = await nflDataService.getStats();
         
         res.json({
             success: true,
