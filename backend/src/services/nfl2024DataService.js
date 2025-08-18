@@ -470,7 +470,7 @@ class NFL2024DataService {
     async getWeekGames(week, season = 2024) {
         try {
             const query = `
-                SELECT 
+                SELECT
                     g.gameid,
                     g.sportradarid,
                     g.week,
@@ -480,7 +480,6 @@ class NFL2024DataService {
                     g.awayteamscore,
                     g.status,
                     g.iscomplete,
-                    g.venue,
                     ht.teamid as hometeamid,
                     ht.name as hometeamname,
                     ht.alias as hometeamalias,
@@ -508,7 +507,7 @@ class NFL2024DataService {
                 gameDate: row.gamedate,
                 status: row.status,
                 isComplete: row.iscomplete,
-                venue: row.venue,
+                venue: null, // Venue column doesn't exist in PostgreSQL schema
                 homeTeam: {
                     id: row.hometeamid,
                     name: row.hometeamname,
@@ -658,6 +657,8 @@ class NFL2024DataService {
         }
 
         // Insert game (removed venue column - doesn't exist in schema)
+        // Use the actual season from the original source, not hardcoded 2024
+        const actualSeason = game.season || 2024; // Default to 2024 only if not provided
         await this.pool.query(`
             INSERT INTO public.games (
                 sportradarid, week, season, gamedate, hometeamid, awayteamid,
@@ -671,7 +672,7 @@ class NFL2024DataService {
         `, [
             sportRadarId,
             game.week,
-            2024,
+            actualSeason,
             gameDate,
             homeTeamId,
             awayTeamId,
