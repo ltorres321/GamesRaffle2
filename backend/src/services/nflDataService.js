@@ -1,11 +1,13 @@
 const { Pool } = require('pg');
 const logger = require('../utils/logger');
+const sportRadarService = require('./sportRadarService');
 const arangoDbService = require('./arangoDbService');
 
 /**
- * Service for loading NFL season historical data
- * Primary: ArangoDB analytics database with accurate historical data (2006-2023)
- * Fallback: Static 2024 season data for offline development
+ * Service for loading NFL season data with multiple data sources
+ * Priority 1: SportRadar Official NFL API (real-time, complete 2024/2025 data)
+ * Priority 2: ArangoDB analytics database (historical data 2006-2023)
+ * Priority 3: Static 2024 season data (offline development fallback)
  * Database: PostgreSQL for NFL Survivor game data storage
  */
 class NFLDataService {
@@ -17,24 +19,334 @@ class NFLDataService {
     }
 
     /**
-     * Load complete 2024 NFL season data
+     * Load complete NFL season data with SportRadar priority
+     */
+    async loadCurrentSeasonData() {
+        try {
+            logger.info('Loading current NFL season data with SportRadar integration...');
+            
+            // Try SportRadar first (Priority 1)
+            try {
+                const result = await this.loadFromSportRadar();
+                logger.info('Successfully loaded NFL season data from SportRadar');
+                return {
+                    success: true,
+                    message: 'NFL season data loaded from SportRadar API',
+                    source: 'sportradar',
+                    details: result
+                };
+            } catch (sportRadarError) {
+                logger.warn('SportRadar loading failed, trying ArangoDB fallback:', sportRadarError.message);
+                
+                // Try ArangoDB fallback (Priority 2)
+                try {
+                    const result = await this.loadFromArangoDB();
+                    logger.info('Successfully loaded NFL season data from ArangoDB');
+                    return {
+                        success: true,
+                        message: 'NFL season data loaded from ArangoDB fallback',
+                        source: 'arango',
+                        details: result
+                    };
+                } catch (arangoError) {
+                    logger.warn('ArangoDB loading failed, using static fallback:', arangoError.message);
+                    
+                    // Final static fallback (Priority 3)
+                    await this.load2024Games();
+                    return {
+                        success: true,
+                        message: 'NFL season data loaded from static fallback',
+                        source: 'static'
+                    };
+                }
+            }
+        } catch (error) {
+            logger.error('All data loading methods failed:', error);
+            throw new Error(`Failed to load NFL season data: ${error.message}`);
+        }
+    }
+
+    /**
+     * Load complete 2024 NFL season data (legacy method for compatibility)
      */
     async load2024SeasonData() {
+        return await this.loadCurrentSeasonData();
+    }
+
+    /**
+     * Load NFL season data from SportRadar API (Primary source)
+     */
+    async loadFromSportRadar() {
         try {
-            logger.info('Loading 2024 NFL season data...');
-
-            // First, load team mappings
-            await this.loadTeamMappings();
-
-            // Then load all games for the 2024 season
-            await this.load2024Games();
-
-            logger.info('Successfully loaded 2024 NFL season data');
-            return { success: true, message: '2024 NFL season data loaded successfully' };
+            logger.info('Loading NFL season data from SportRadar API...');
+            
+            // First, sync NFL teams from SportRadar
+            await this.syncTeamsFromSportRadar();
+            
+            // Then load current season schedule
+            const schedule = await sportRadarService.getCurrentSeasonSchedule();
+            if (!schedule || schedule.length === 0) {
+                throw new Error('No schedule data received from SportRadar');
+            }
+            
+            logger.info(`Retrieved ${schedule.length} games from SportRadar, syncing to database...`);
+            
+            // Sync games to PostgreSQL
+            let gamesInserted = 0;
+            let gamesUpdated = 0;
+            
+            for (const game of schedule) {
+                try {
+                    const result = await this.insertSportRadarGame(game);
+                    if (result === 'inserted') gamesInserted++;
+                    else if (result === 'updated') gamesUpdated++;
+                } catch (error) {
+                    logger.warn(`Failed to sync game ${game.awayTeam?.alias} @ ${game.homeTeam?.alias}:`, error.message);
+                }
+            }
+            
+            logger.info(`SportRadar sync complete: ${gamesInserted} games inserted, ${gamesUpdated} games updated`);
+            return {
+                gamesTotal: schedule.length,
+                gamesInserted,
+                gamesUpdated,
+                apiSource: 'SportRadar Official NFL API'
+            };
+            
         } catch (error) {
-            logger.error('Failed to load 2024 season data:', error);
-            throw new Error(`Failed to load 2024 season data: ${error.message}`);
+            logger.error('Failed to load from SportRadar:', error.message);
+            throw error;
         }
+    }
+
+    /**
+     * Sync NFL teams from SportRadar API
+     */
+    async syncTeamsFromSportRadar() {
+        try {
+            logger.info('Syncing NFL teams from SportRadar...');
+            
+            // Get current season schedule to extract team information
+            const schedule = await sportRadarService.getCurrentSeasonSchedule();
+            if (!schedule || schedule.length === 0) {
+                throw new Error('No schedule data available to extract teams');
+            }
+            
+            const teams = new Map();
+            
+            // Extract unique teams from schedule
+            schedule.forEach(game => {
+                if (game.homeTeam?.id && game.homeTeam?.alias) {
+                    teams.set(game.homeTeam.id, {
+                        sportRadarId: game.homeTeam.id,
+                        name: game.homeTeam.name,
+                        alias: game.homeTeam.alias,
+                        market: game.homeTeam.market,
+                        fullName: `${game.homeTeam.market} ${game.homeTeam.name}`
+                    });
+                }
+                if (game.awayTeam?.id && game.awayTeam?.alias) {
+                    teams.set(game.awayTeam.id, {
+                        sportRadarId: game.awayTeam.id,
+                        name: game.awayTeam.name,
+                        alias: game.awayTeam.alias,
+                        market: game.awayTeam.market,
+                        fullName: `${game.awayTeam.market} ${game.awayTeam.name}`
+                    });
+                }
+            });
+            
+            logger.info(`Found ${teams.size} unique teams, updating database...`);
+            
+            // Update teams in PostgreSQL
+            let teamsUpdated = 0;
+            for (const [sportRadarId, teamData] of teams) {
+                try {
+                    const result = await this.pool.query(`
+                        UPDATE Teams
+                        SET SportRadarId = $1,
+                            Name = $2,
+                            Market = $3,
+                            FullName = $4,
+                            UpdatedAt = NOW()
+                        WHERE Alias = $5 OR SportRadarId = $6
+                        RETURNING TeamId
+                    `, [
+                        teamData.sportRadarId,
+                        teamData.name,
+                        teamData.market,
+                        teamData.fullName,
+                        teamData.alias,
+                        teamData.sportRadarId
+                    ]);
+                    
+                    if (result.rows.length > 0) {
+                        teamsUpdated++;
+                        logger.debug(`Updated team: ${teamData.alias} (${teamData.fullName})`);
+                    }
+                } catch (error) {
+                    logger.warn(`Failed to update team ${teamData.alias}:`, error.message);
+                }
+            }
+            
+            logger.info(`Successfully updated ${teamsUpdated} teams from SportRadar`);
+            return { teamsFound: teams.size, teamsUpdated };
+            
+        } catch (error) {
+            logger.error('Failed to sync teams from SportRadar:', error.message);
+            throw error;
+        }
+    }
+
+    /**
+     * Insert/Update a SportRadar game in PostgreSQL
+     */
+    async insertSportRadarGame(game) {
+        try {
+            // Get team IDs from database using SportRadar IDs
+            const homeTeamQuery = await this.pool.query(
+                'SELECT TeamId FROM Teams WHERE SportRadarId = $1 OR Alias = $2',
+                [game.homeTeam?.id, game.homeTeam?.alias]
+            );
+            const awayTeamQuery = await this.pool.query(
+                'SELECT TeamId FROM Teams WHERE SportRadarId = $1 OR Alias = $2',
+                [game.awayTeam?.id, game.awayTeam?.alias]
+            );
+            
+            if (homeTeamQuery.rows.length === 0 || awayTeamQuery.rows.length === 0) {
+                throw new Error(`Teams not found: ${game.awayTeam?.alias} @ ${game.homeTeam?.alias}`);
+            }
+            
+            const homeTeamId = homeTeamQuery.rows[0].teamid;
+            const awayTeamId = awayTeamQuery.rows[0].teamid;
+            
+            // Check if game already exists
+            const existingGame = await this.pool.query(
+                'SELECT GameId FROM Games WHERE SportRadarId = $1',
+                [game.gameId]
+            );
+            
+            const gameDate = new Date(game.scheduled);
+            const status = game.status || 'scheduled';
+            const isComplete = status === 'closed';
+            
+            if (existingGame.rows.length > 0) {
+                // Update existing game
+                await this.pool.query(`
+                    UPDATE Games
+                    SET GameDate = $1, Status = $2, IsComplete = $3, UpdatedAt = NOW()
+                    WHERE SportRadarId = $4
+                `, [gameDate, status, isComplete, game.gameId]);
+                
+                return 'updated';
+            } else {
+                // Insert new game
+                await this.pool.query(`
+                    INSERT INTO Games (
+                        SportRadarId, Week, Season, HomeTeamId, AwayTeamId,
+                        GameDate, Status, IsComplete, CreatedAt, UpdatedAt
+                    ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, NOW(), NOW())
+                `, [
+                    game.gameId,
+                    game.week,
+                    game.season,
+                    homeTeamId,
+                    awayTeamId,
+                    gameDate,
+                    status,
+                    isComplete
+                ]);
+                
+                return 'inserted';
+            }
+        } catch (error) {
+            logger.error(`Failed to insert/update SportRadar game:`, error.message);
+            throw error;
+        }
+    }
+
+    /**
+     * Update game scores from SportRadar (for completed games)
+     */
+    async updateGameScoresFromSportRadar(gameIds = null) {
+        try {
+            logger.info('Updating game scores from SportRadar...');
+            
+            // Get games to update (either specific games or all incomplete games)
+            let query, params;
+            if (gameIds && gameIds.length > 0) {
+                query = 'SELECT GameId, SportRadarId FROM Games WHERE SportRadarId = ANY($1)';
+                params = [gameIds];
+            } else {
+                query = 'SELECT GameId, SportRadarId FROM Games WHERE IsComplete = false AND SportRadarId IS NOT NULL';
+                params = [];
+            }
+            
+            const games = await this.pool.query(query, params);
+            if (games.rows.length === 0) {
+                logger.info('No games found for score updates');
+                return { updated: 0, errors: [] };
+            }
+            
+            logger.info(`Updating scores for ${games.rows.length} games...`);
+            
+            const sportRadarIds = games.rows.map(game => game.sportradarid);
+            const { boxscores, errors } = await sportRadarService.getMultipleBoxscores(sportRadarIds);
+            
+            let gamesUpdated = 0;
+            for (const boxscoreResult of boxscores) {
+                if (boxscoreResult.success) {
+                    try {
+                        await this.updateGameWithBoxscore(boxscoreResult.boxscore);
+                        gamesUpdated++;
+                    } catch (error) {
+                        logger.error(`Failed to update game ${boxscoreResult.gameId}:`, error.message);
+                        errors.push({ gameId: boxscoreResult.gameId, error: error.message });
+                    }
+                }
+            }
+            
+            logger.info(`Score update complete: ${gamesUpdated} games updated, ${errors.length} errors`);
+            return { updated: gamesUpdated, errors };
+            
+        } catch (error) {
+            logger.error('Failed to update scores from SportRadar:', error.message);
+            throw error;
+        }
+    }
+
+    /**
+     * Update a game with boxscore data
+     */
+    async updateGameWithBoxscore(boxscore) {
+        if (!boxscore || !boxscore.gameId) return;
+        
+        const homeScore = boxscore.homeTeam?.points || 0;
+        const awayScore = boxscore.awayTeam?.points || 0;
+        const status = boxscore.status;
+        const isComplete = boxscore.isComplete;
+        
+        // Determine winner
+        const gameResult = sportRadarService.determineWinner(
+            boxscore.homeTeam.id,
+            boxscore.awayTeam.id,
+            homeScore,
+            awayScore
+        );
+        
+        await this.pool.query(`
+            UPDATE Games
+            SET HomeTeamScore = $1, AwayTeamScore = $2, Status = $3,
+                IsComplete = $4, Winner = $5, UpdatedAt = NOW()
+            WHERE SportRadarId = $6
+        `, [
+            homeScore,
+            awayScore,
+            status,
+            isComplete,
+            gameResult.winnerId,
+            boxscore.gameId
+        ]);
     }
 
     /**
@@ -765,26 +1077,129 @@ class NFLDataService {
     }
 
     /**
-     * Enhanced load method with ArangoDB priority
+     * Enhanced load method with SportRadar priority (replaces old ArangoDB-first approach)
      */
     async loadEnhanced2024SeasonData() {
+        // Use the new SportRadar-first loading method
+        return await this.loadCurrentSeasonData();
+    }
+
+    /**
+     * Get current week games with SportRadar priority
+     */
+    async getCurrentWeekGames() {
         try {
-            logger.info('Loading 2024 NFL season data with ArangoDB integration...');
+            // Try to get current week from SportRadar first
+            try {
+                const sportRadarGames = await sportRadarService.getCurrentWeekSchedule();
+                if (sportRadarGames && sportRadarGames.length > 0) {
+                    logger.info(`Retrieved ${sportRadarGames.length} games from SportRadar current week`);
+                    
+                    // Sync these games to database and return formatted data
+                    await this.syncSportRadarGamesToDatabase(sportRadarGames);
+                    
+                    return this.formatSportRadarGamesForResponse(sportRadarGames);
+                }
+            } catch (sportRadarError) {
+                logger.warn('Failed to get current week from SportRadar, using database fallback:', sportRadarError.message);
+            }
             
-            // Try ArangoDB first
-            const arangoResult = await this.loadFromArangoDB();
+            // Fallback to database
+            const currentWeek = this.getCurrentWeekNumber();
+            return await this.getWeekGames(currentWeek);
             
-            return {
-                success: true,
-                message: `2024 NFL season data loaded successfully from ${arangoResult.source}`,
-                source: arangoResult.source,
-                details: arangoResult.message
-            };
         } catch (error) {
-            logger.error('Enhanced data loading failed:', error.message);
+            logger.error('Failed to get current week games:', error.message);
+            throw error;
+        }
+    }
+
+    /**
+     * Get current NFL week number (simplified calculation)
+     */
+    getCurrentWeekNumber() {
+        const now = new Date();
+        const seasonStart = new Date('2024-09-05'); // 2024 NFL season start
+        const weeksSinceStart = Math.floor((now - seasonStart) / (7 * 24 * 60 * 60 * 1000)) + 1;
+        return Math.min(Math.max(weeksSinceStart, 1), 18); // Clamp between 1 and 18
+    }
+
+    /**
+     * Sync SportRadar games to database (for caching and offline access)
+     */
+    async syncSportRadarGamesToDatabase(games) {
+        for (const game of games) {
+            try {
+                await this.insertSportRadarGame(game);
+            } catch (error) {
+                logger.warn(`Failed to sync game to database: ${game.awayTeam?.alias} @ ${game.homeTeam?.alias}`, error.message);
+            }
+        }
+    }
+
+    /**
+     * Format SportRadar games for API response
+     */
+    formatSportRadarGamesForResponse(games) {
+        return games.map(game => ({
+            gameId: game.gameId,
+            sportRadarId: game.gameId,
+            week: game.week,
+            season: game.season,
+            gameDate: new Date(game.scheduled),
+            status: game.status,
+            isComplete: game.status === 'closed',
+            venue: game.venue ? {
+                id: game.venue.id,
+                name: game.venue.name,
+                city: game.venue.city,
+                state: game.venue.state
+            } : null,
+            homeTeam: {
+                id: game.homeTeam.id,
+                name: game.homeTeam.name,
+                alias: game.homeTeam.alias,
+                market: game.homeTeam.market,
+                fullName: `${game.homeTeam.market} ${game.homeTeam.name}`,
+                score: 0 // Will be updated when scores are available
+            },
+            awayTeam: {
+                id: game.awayTeam.id,
+                name: game.awayTeam.name,
+                alias: game.awayTeam.alias,
+                market: game.awayTeam.market,
+                fullName: `${game.awayTeam.market} ${game.awayTeam.name}`,
+                score: 0 // Will be updated when scores are available
+            },
+            winner: null // Will be determined when game is complete
+        }));
+    }
+
+    /**
+     * Get live scores and update games (called by scheduled jobs)
+     */
+    async updateLiveScores() {
+        try {
+            logger.info('Updating live scores from SportRadar...');
             
-            // Final fallback to original static method
-            return await this.load2024SeasonData();
+            // Get all incomplete games from database
+            const incompleteGames = await this.pool.query(`
+                SELECT SportRadarId FROM Games
+                WHERE IsComplete = false AND SportRadarId IS NOT NULL
+                ORDER BY GameDate ASC
+            `);
+            
+            if (incompleteGames.rows.length === 0) {
+                logger.info('No incomplete games found for score updates');
+                return { updated: 0, message: 'No games to update' };
+            }
+            
+            const sportRadarIds = incompleteGames.rows.map(row => row.sportradarid);
+            return await this.updateGameScoresFromSportRadar(sportRadarIds);
+            
+        } catch (error) {
+            logger.error('Failed to update live scores:', error.message);
+            throw error;
         }
     }
 }
