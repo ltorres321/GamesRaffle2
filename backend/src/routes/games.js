@@ -3,6 +3,7 @@ const router = express.Router();
 const { authenticate, authorize } = require('../middleware/auth');
 const gameService = require('../services/gameService');
 const sportRadarService = require('../services/sportRadarService');
+const nflDataService = require('../services/nflDataService');
 const scheduledJobService = require('../services/scheduledJobService');
 const { body, param, query, validationResult } = require('express-validator');
 const logger = require('../utils/logger');
@@ -238,6 +239,57 @@ router.post('/update-scores', authenticate, authorize(['Admin', 'SuperAdmin']), 
         res.status(500).json({
             success: false,
             message: 'Failed to update game scores',
+            error: process.env.NODE_ENV === 'development' ? error.message : undefined
+        });
+    }
+});
+
+/**
+ * @route POST /api/games/update-scores/odds-api
+ * @desc Update game scores from The Odds API (Admin only)
+ * @access Private (Admin)
+ */
+router.post('/update-scores/odds-api', authenticate, authorize(['Admin', 'SuperAdmin']), async (req, res) => {
+    try {
+        logger.info(`Admin ${req.user.userId} initiated scores update from The Odds API`);
+        
+        const result = await nflDataService.updateGameScoresFromOddsAPI();
+        
+        res.json({
+            success: true,
+            message: 'Game scores updated successfully from The Odds API',
+            data: result
+        });
+    } catch (error) {
+        logger.error('Failed to update scores from The Odds API:', error.message);
+        res.status(500).json({
+            success: false,
+            message: 'Failed to update game scores from The Odds API',
+            error: process.env.NODE_ENV === 'development' ? error.message : undefined
+        });
+    }
+});
+
+/**
+ * @route GET /api/games/data-sources/health
+ * @desc Get health status of all data sources
+ * @access Private (Admin)
+ */
+router.get('/data-sources/health', authenticate, authorize(['Admin', 'SuperAdmin']), async (req, res) => {
+    try {
+        logger.info(`Admin ${req.user.userId} requested data sources health check`);
+        
+        const health = await nflDataService.getDataSourceHealth();
+        
+        res.json({
+            success: true,
+            data: health
+        });
+    } catch (error) {
+        logger.error('Failed to get data sources health:', error.message);
+        res.status(500).json({
+            success: false,
+            message: 'Failed to get data sources health',
             error: process.env.NODE_ENV === 'development' ? error.message : undefined
         });
     }

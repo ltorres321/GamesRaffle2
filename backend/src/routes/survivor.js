@@ -522,29 +522,8 @@ router.get('/nfl/week/:week', async (req, res) => {
  */
 router.get('/nfl/teams', async (req, res) => {
     try {
-        const { Pool } = require('pg');
-        const pool = new Pool({
-            connectionString: process.env.DATABASE_URL,
-            ssl: process.env.NODE_ENV === 'production' ? { rejectUnauthorized: false } : false
-        });
-
-        const result = await pool.query(`
-            SELECT teamid, name, alias, market, fullname, conference, division, primarycolor, secondarycolor
-            FROM public.teams 
-            ORDER BY conference, division, name
-        `);
-
-        const teams = result.rows.map(team => ({
-            teamId: team.teamid,
-            name: team.name,
-            alias: team.alias,
-            market: team.market,
-            fullName: team.fullname,
-            conference: team.conference,
-            division: team.division,
-            primaryColor: team.primarycolor,
-            secondaryColor: team.secondarycolor
-        }));
+        // Use the new nflDataService to get teams from correct schema
+        const teams = await nflDataService.getTeams();
 
         res.json({
             success: true,

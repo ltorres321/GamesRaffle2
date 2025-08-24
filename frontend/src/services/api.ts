@@ -155,6 +155,87 @@ class ApiService {
       body: JSON.stringify({ refreshToken }),
     })
   }
+
+  // ================================
+  // NFL SURVIVOR GAME DATA METHODS
+  // ================================
+
+  // Get NFL games for a specific week
+  async getNFLWeekGames(week: number, season?: number): Promise<ApiResponse<any>> {
+    const seasonParam = season ? `?season=${season}` : ''
+    return this.request(`/api/survivor/nfl/week/${week}${seasonParam}`)
+  }
+
+  // Get all NFL teams
+  async getNFLTeams(): Promise<ApiResponse<any>> {
+    return this.request('/api/survivor/nfl/teams')
+  }
+
+  // Get survivor game details
+  async getSurvivorGame(gameId: string): Promise<ApiResponse<any>> {
+    return this.request(`/api/survivor/games/${gameId}`)
+  }
+
+  // Join a survivor game
+  async joinSurvivorGame(gameId: string): Promise<ApiResponse<any>> {
+    return this.request(`/api/survivor/games/${gameId}/join`, {
+      method: 'POST'
+    })
+  }
+
+  // Create a new survivor game
+  async createSurvivorGame(gameData: any): Promise<ApiResponse<any>> {
+    return this.request('/api/survivor/games', {
+      method: 'POST',
+      body: JSON.stringify(gameData)
+    })
+  }
+
+  // Submit a pick
+  async submitPick(pickData: any): Promise<ApiResponse<any>> {
+    return this.request('/api/survivor/picks', {
+      method: 'POST',
+      body: JSON.stringify(pickData)
+    })
+  }
+
+  // Get player's picks for a game
+  async getPlayerPicks(gameId: string, season?: number): Promise<ApiResponse<any>> {
+    const seasonParam = season ? `?season=${season}` : ''
+    return this.request(`/api/survivor/picks/${gameId}${seasonParam}`)
+  }
+
+  // Get available teams for picks (teams not yet used)
+  async getAvailableTeams(gameId: string, season?: number): Promise<ApiResponse<any>> {
+    const seasonParam = season ? `?season=${season}` : ''
+    return this.request(`/api/survivor/picks/${gameId}/available-teams${seasonParam}`)
+  }
+
+  // Get game leaderboard
+  async getGameLeaderboard(gameId: string): Promise<ApiResponse<any>> {
+    return this.request(`/api/survivor/games/${gameId}/leaderboard`)
+  }
+
+  // Get player's status in a game
+  async getMyGameStatus(gameId: string): Promise<ApiResponse<any>> {
+    return this.request(`/api/survivor/games/${gameId}/my-status`)
+  }
+
+  // ================================
+  // ADMIN METHODS
+  // ================================
+
+  // Load NFL season data (admin only)
+  async loadSeasonData(): Promise<ApiResponse<any>> {
+    return this.request('/api/survivor/admin/load-2024-data', {
+      method: 'POST'
+    })
+  }
+
+  // Get data source health check
+  async getDataSourceHealth(): Promise<ApiResponse<any>> {
+    return this.request('/api/survivor/health')
+  }
 }
 
 export default new ApiService()
